@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { UserPlus } from "lucide-react";
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { createSupabaseBrowserClient, MISSING_SUPABASE_BROWSER_ENV } from "@/lib/supabase/browser";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -27,6 +27,11 @@ export function RegisterForm() {
         }
 
         const supabase = createSupabaseBrowserClient();
+        if (!supabase) {
+          setError(MISSING_SUPABASE_BROWSER_ENV);
+          return;
+        }
+
         const origin = window.location.origin;
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,

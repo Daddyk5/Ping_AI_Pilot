@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { LogIn } from "lucide-react";
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { createSupabaseBrowserClient, MISSING_SUPABASE_BROWSER_ENV } from "@/lib/supabase/browser";
 
 export function LoginForm() {
   const router = useRouter();
@@ -24,6 +24,11 @@ export function LoginForm() {
         }
 
         const supabase = createSupabaseBrowserClient();
+        if (!supabase) {
+          setError(MISSING_SUPABASE_BROWSER_ENV);
+          return;
+        }
+
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,

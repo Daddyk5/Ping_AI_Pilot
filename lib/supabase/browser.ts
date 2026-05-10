@@ -10,7 +10,7 @@ export function createSupabaseBrowserClient() {
   const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !publishableKey) {
-    throw new Error(MISSING_SUPABASE_BROWSER_ENV);
+    return null;
   }
 
   return createBrowserClient(supabaseUrl, publishableKey);
