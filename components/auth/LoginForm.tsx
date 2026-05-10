@@ -14,28 +14,32 @@ export function LoginForm() {
     setError(null);
 
     startTransition(async () => {
-      const email = String(formData.get("email") ?? "").trim();
-      const password = String(formData.get("password") ?? "");
+      try {
+        const email = String(formData.get("email") ?? "").trim();
+        const password = String(formData.get("password") ?? "");
 
-      if (!email || !password) {
-        setError("Email and password are required.");
-        return;
+        if (!email || !password) {
+          setError("Email and password are required.");
+          return;
+        }
+
+        const supabase = createSupabaseBrowserClient();
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (signInError) {
+          setError(signInError.message);
+          return;
+        }
+
+        const nextPath = new URLSearchParams(window.location.search).get("next");
+        router.replace(nextPath ?? "/dashboard");
+        router.refresh();
+      } catch (loginError) {
+        setError(loginError instanceof Error ? loginError.message : "Unable to login.");
       }
-
-      const supabase = createSupabaseBrowserClient();
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (signInError) {
-        setError(signInError.message);
-        return;
-      }
-
-      const nextPath = new URLSearchParams(window.location.search).get("next");
-      router.replace(nextPath ?? "/dashboard");
-      router.refresh();
     });
   }
 

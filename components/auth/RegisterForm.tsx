@@ -16,40 +16,44 @@ export function RegisterForm() {
     setMessage(null);
 
     startTransition(async () => {
-      const displayName = String(formData.get("displayName") ?? "").trim();
-      const email = String(formData.get("email") ?? "").trim();
-      const password = String(formData.get("password") ?? "");
+      try {
+        const displayName = String(formData.get("displayName") ?? "").trim();
+        const email = String(formData.get("email") ?? "").trim();
+        const password = String(formData.get("password") ?? "");
 
-      if (!displayName || !email || password.length < 8) {
-        setError("Name, email, and a password of at least 8 characters are required.");
-        return;
-      }
+        if (!displayName || !email || password.length < 8) {
+          setError("Name, email, and a password of at least 8 characters are required.");
+          return;
+        }
 
-      const supabase = createSupabaseBrowserClient();
-      const origin = window.location.origin;
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${origin}/auth/callback`,
-          data: {
-            display_name: displayName,
+        const supabase = createSupabaseBrowserClient();
+        const origin = window.location.origin;
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${origin}/auth/callback`,
+            data: {
+              display_name: displayName,
+            },
           },
-        },
-      });
+        });
 
-      if (signUpError) {
-        setError(signUpError.message);
-        return;
+        if (signUpError) {
+          setError(signUpError.message);
+          return;
+        }
+
+        if (data.session) {
+          router.replace("/dashboard");
+          router.refresh();
+          return;
+        }
+
+        setMessage("Registration received. Check your email to confirm the account before logging in.");
+      } catch (registerError) {
+        setError(registerError instanceof Error ? registerError.message : "Unable to create account.");
       }
-
-      if (data.session) {
-        router.replace("/dashboard");
-        router.refresh();
-        return;
-      }
-
-      setMessage("Registration received. Check your email to confirm the account before logging in.");
     });
   }
 
