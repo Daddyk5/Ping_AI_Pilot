@@ -1,7 +1,7 @@
-import { supabaseAdmin } from "@/lib/supabase";
+import { getSupabaseAdmin } from "@/lib/supabase";
 import type { PingHistoryRecord, PingResult } from "@/types";
 
-const TABLE = "ping_history";
+const TABLE = "ping_history" as const;
 
 export function toHistoryRecord(result: PingResult): PingHistoryRecord {
   return {
@@ -21,6 +21,7 @@ export function toHistoryRecord(result: PingResult): PingHistoryRecord {
 }
 
 export async function listHistory() {
+  const supabaseAdmin = getSupabaseAdmin();
   const { data, error } = await supabaseAdmin.from(TABLE).select("*").order("created_at", { ascending: false }).limit(100);
 
   if (error) {
@@ -31,6 +32,7 @@ export async function listHistory() {
 }
 
 export async function saveHistory(result: PingResult) {
+  const supabaseAdmin = getSupabaseAdmin();
   const { data, error } = await supabaseAdmin.from(TABLE).insert(toHistoryRecord(result)).select("*").single();
 
   if (error) {
@@ -41,6 +43,7 @@ export async function saveHistory(result: PingResult) {
 }
 
 export async function deleteHistory() {
+  const supabaseAdmin = getSupabaseAdmin();
   const { error } = await supabaseAdmin.from(TABLE).delete().not("id", "is", null);
 
   if (error) {
