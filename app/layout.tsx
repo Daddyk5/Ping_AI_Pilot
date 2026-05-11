@@ -3,8 +3,8 @@ import { AppShell } from "@/components/shared/AppShell";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "PingPilot AI",
-  description: "Technical network telemetry dashboard for competitive gaming.",
+  title: "PING AI PILOT",
+  description: "AI-powered network monitoring platform",
 };
 
 export default function RootLayout({
@@ -13,8 +13,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-full">
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className="h-full antialiased"
+    >
+      <body
+        suppressHydrationWarning
+        className="min-h-full bg-black text-white"
+      >
         <AppShell>{children}</AppShell>
       </body>
     </html>

@@ -37,10 +37,30 @@ body {
   font-family: var(--font-geist-sans), sans-serif;
   overflow-x: hidden;
   background-image:
+    linear-gradient(135deg, rgba(0, 243, 255, 0.08), transparent 38%),
+    linear-gradient(225deg, rgba(57, 255, 20, 0.055), transparent 42%),
     linear-gradient(rgba(0, 243, 255, 0.035) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 243, 255, 0.035) 1px, transparent 1px),
-    radial-gradient(circle at 50% -20%, rgba(0, 243, 255, 0.16), transparent 34%);
-  background-size: 48px 48px, 48px 48px, 100% 100%;
+    linear-gradient(180deg, rgba(0, 243, 255, 0.08), transparent 30%);
+  background-attachment: fixed;
+  background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px, 100% 100%;
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  background-image: radial-gradient(rgba(255, 255, 255, 0.13) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: linear-gradient(to bottom, transparent, black 18%, black 72%, transparent);
+  opacity: 0.16;
+}
+
+::selection {
+  background: rgba(0, 243, 255, 0.25);
+  color: #f8fafc;
 }
 
 .ping-glow {
@@ -55,6 +75,29 @@ body {
   box-shadow: 0 0 14px currentColor;
 }
 
+.ping-orbit {
+  position: absolute;
+  inset: -5px;
+  border: 1px solid rgba(0, 243, 255, 0.24);
+  border-radius: 8px;
+  pointer-events: none;
+  transform-origin: center;
+}
+
+.ping-orbit-a {
+  animation: ping-orbit 3.6s linear infinite;
+}
+
+.ping-orbit-b {
+  inset: -9px;
+  border-color: rgba(57, 255, 20, 0.14);
+  animation: ping-orbit 5.2s linear infinite reverse;
+}
+
+.page-fade {
+  animation: page-fade 0.3s ease-out both;
+}
+
 @keyframes pulse-green {
   0%,
   100% {
@@ -62,6 +105,43 @@ body {
   }
   50% {
     box-shadow: 0 0 24px rgba(57, 255, 20, 0.48);
+  }
+}
+
+@keyframes ping-orbit {
+  0% {
+    opacity: 0.28;
+    transform: rotate(0deg) scale(0.92);
+  }
+  50% {
+    opacity: 0.72;
+    transform: rotate(180deg) scale(1.04);
+  }
+  100% {
+    opacity: 0.28;
+    transform: rotate(360deg) scale(0.92);
+  }
+}
+
+@keyframes page-fade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 

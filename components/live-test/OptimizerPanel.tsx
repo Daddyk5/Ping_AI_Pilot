@@ -1,18 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Activity, Crosshair, Loader2, Radar, ShieldCheck, Zap } from "lucide-react";
+import { Activity, Crosshair, Loader2, Radar, ShieldCheck, ShieldQuestion, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { GAMES, SAFETY_NOTICE } from "@/lib/constants";
-import type { DetectedGame, GameId, PingResult } from "@/types";
+import type { DetectedGame, GameId, PingResult, VpnStatus } from "@/types";
 
 type BoostResponse = {
   recommended: PingResult;
   rankedServers: PingResult[];
   coachMessage: string;
   safetyNotice: string;
+  vpnStatus: VpnStatus;
 };
 
 export function OptimizerPanel() {
@@ -172,36 +173,46 @@ export function OptimizerPanel() {
             <p className="mt-3 text-sm leading-6 text-zinc-300">{result.coachMessage}</p>
           </div>
 
-          <div className="overflow-hidden rounded border border-white/10">
-            <table className="w-full min-w-[560px] text-left text-sm">
-              <thead className="border-b border-white/10 text-xs uppercase tracking-[0.16em] text-zinc-500">
-                <tr>
-                  <th className="px-3 py-3">Region</th>
-                  <th className="px-3 py-3">Average</th>
-                  <th className="px-3 py-3">Jitter</th>
-                  <th className="px-3 py-3">Loss</th>
-                  <th className="px-3 py-3">Score</th>
-                  <th className="px-3 py-3">Mode</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/10">
-                {result.rankedServers.map((server) => (
-                  <tr key={server.regionId} className="hover:bg-white/[0.03]">
-                    <td className="px-3 py-3 text-zinc-100">{server.region}</td>
-                    <td className="px-3 py-3 font-mono text-cyan-100">{server.averagePing}ms</td>
-                    <td className="px-3 py-3 font-mono text-zinc-300">{server.jitter}ms</td>
-                    <td className="px-3 py-3 font-mono text-zinc-300">{server.packetLoss}%</td>
-                    <td className="px-3 py-3 font-mono text-zinc-300">{server.score}</td>
-                    <td className="px-3 py-3">
-                      <Badge tone={server.mode === "real" ? "green" : "neutral"}>
-                        <Activity className="mr-1 h-3 w-3" aria-hidden />
-                        {server.mode}
-                      </Badge>
-                    </td>
+          <div className="space-y-4">
+            <div className="rounded border border-white/10 bg-white/[0.03] p-4">
+              <div className="flex items-center gap-2 text-cyan-100">
+                <ShieldQuestion className="h-4 w-4" aria-hidden />
+                <p className="text-xs font-semibold uppercase tracking-[0.18em]">VPN route awareness</p>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-zinc-400">{result.vpnStatus.summary}</p>
+            </div>
+
+            <div className="overflow-hidden rounded border border-white/10">
+              <table className="w-full min-w-[560px] text-left text-sm">
+                <thead className="border-b border-white/10 text-xs uppercase tracking-[0.16em] text-zinc-500">
+                  <tr>
+                    <th className="px-3 py-3">Region</th>
+                    <th className="px-3 py-3">Average</th>
+                    <th className="px-3 py-3">Jitter</th>
+                    <th className="px-3 py-3">Loss</th>
+                    <th className="px-3 py-3">Score</th>
+                    <th className="px-3 py-3">Mode</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-white/10">
+                  {result.rankedServers.map((server) => (
+                    <tr key={server.regionId} className="hover:bg-white/[0.03]">
+                      <td className="px-3 py-3 text-zinc-100">{server.region}</td>
+                      <td className="px-3 py-3 font-mono text-cyan-100">{server.averagePing}ms</td>
+                      <td className="px-3 py-3 font-mono text-zinc-300">{server.jitter}ms</td>
+                      <td className="px-3 py-3 font-mono text-zinc-300">{server.packetLoss}%</td>
+                      <td className="px-3 py-3 font-mono text-zinc-300">{server.score}</td>
+                      <td className="px-3 py-3">
+                        <Badge tone={server.mode === "real" ? "green" : "neutral"}>
+                          <Activity className="mr-1 h-3 w-3" aria-hidden />
+                          {server.mode}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

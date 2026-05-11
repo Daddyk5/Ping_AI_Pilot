@@ -37,6 +37,13 @@ export type PingResult = {
   createdAt: string;
 };
 
+export type VpnStatus = {
+  active: boolean;
+  confidence: "high" | "medium" | "none";
+  interfaceNames: string[];
+  summary: string;
+};
+
 export type PingHistoryRecord = {
   id?: string;
   game: string;

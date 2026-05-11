@@ -3,6 +3,7 @@ import { isAuthenticationError, requireUser } from "@/lib/auth";
 import { GAMES, getRegionsForGame, SAFETY_NOTICE } from "@/lib/constants";
 import { calculateScore, getStability, simulatePingResult } from "@/lib/ping-logic";
 import { runRealPing } from "@/lib/real-ping";
+import { detectVpnStatus } from "@/lib/vpn-detection";
 import type { GameId, PingMode, PingResult } from "@/types";
 
 export const runtime = "nodejs";
@@ -58,6 +59,7 @@ export async function POST(request: Request) {
       rankedServers,
       coachMessage: getCoachMessage(recommended),
       safetyNotice: SAFETY_NOTICE,
+      vpnStatus: detectVpnStatus(),
     });
   } catch (error) {
     if (isAuthenticationError(error)) {

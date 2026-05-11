@@ -3,6 +3,7 @@ import { isAuthenticationError, requireUser } from "@/lib/auth";
 import { calculateScore, getStability, simulatePingResult } from "@/lib/ping-logic";
 import { runRealPing } from "@/lib/real-ping";
 import { validatePingTestInput } from "@/lib/validation";
+import { detectVpnStatus } from "@/lib/vpn-detection";
 import type { PingMode, PingResult } from "@/types";
 
 export const runtime = "nodejs";
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString(),
     };
 
-    return Response.json(result);
+    return Response.json({ ...result, vpnStatus: detectVpnStatus() });
   } catch (error) {
     if (isAuthenticationError(error)) {
       return Response.json({ success: false, error: error.message }, { status: 401 });

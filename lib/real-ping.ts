@@ -5,10 +5,10 @@ import { parsePingOutput } from "@/lib/ping-logic";
 
 function pingArgs(host: string) {
   if (os.platform() === "win32") {
-    return ["-n", String(PING_SAMPLE_COUNT), host];
+    return ["-n", String(PING_SAMPLE_COUNT), "-w", String(PING_TIMEOUT_MS), host];
   }
 
-  return ["-c", String(PING_SAMPLE_COUNT), host];
+  return ["-c", String(PING_SAMPLE_COUNT), "-W", String(Math.ceil(PING_TIMEOUT_MS / 1000)), host];
 }
 
 export async function runRealPing(host: string) {
