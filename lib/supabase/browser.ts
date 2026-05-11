@@ -13,5 +13,10 @@ export function createSupabaseBrowserClient() {
     return null;
   }
 
-  return createBrowserClient(supabaseUrl, publishableKey);
+  try {
+    return createBrowserClient(supabaseUrl, publishableKey);
+  } catch (error) {
+    console.error("Supabase browser client could not be created.", error);
+    return null;
+  }
 }
