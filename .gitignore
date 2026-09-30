@@ -44,3 +44,6 @@ next-env.d.ts
 *model
 # env template is safe to commit (no real values)
 !.env.example
+
+# Supabase CLI local state (linked project, cached versions)
+supabase/.temp/
