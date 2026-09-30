@@ -113,6 +113,8 @@ One-time setup:
 
 `NEXT_PUBLIC_*` values are baked in at **build time**, so redeploy after changing them. **No service-role key is used anywhere.** All database access runs as the signed-in user, under Row Level Security.
 
+**Design preview (development only):** with `npm run dev` running, open `/dev/preview/dashboard`, `dashboard-empty`, `optimizer`, `history`, `settings` or `admin` to see the signed-in screens with sample data (`lib/dev/fixtures.ts`), without an account. These routes return 404 in production builds.
+
 ### Scripts
 
 | Command | |

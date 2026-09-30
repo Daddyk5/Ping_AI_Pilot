@@ -37,11 +37,11 @@ export function RegionRankingChart({
 
   return (
     <figure>
-      <figcaption className="mb-2 text-sm text-zinc-400">Median round-trip time by region (lower is better)</figcaption>
+      <figcaption className="mb-2 text-sm text-fg-3">Median round-trip time in ms. Ranked by overall quality: latency plus stability (jitter, failures).</figcaption>
       <ResponsiveContainer width="100%" height={height} minWidth={0}>
         <BarChart data={data} layout="vertical" margin={{ top: 4, right: 56, left: 8, bottom: 4 }} barCategoryGap={6}>
           <CartesianGrid horizontal={false} stroke={chartColors.grid} />
-          <XAxis type="number" {...axisProps} tickFormatter={(value) => `${value}`} unit=" ms" />
+          <XAxis type="number" {...axisProps} />
           <YAxis type="category" dataKey="label" width={140} {...axisProps} axisLine={false} tick={{ fill: chartColors.textSecondary, fontSize: 12 }} />
           <Tooltip
             cursor={{ fill: "rgba(255,255,255,0.04)" }}

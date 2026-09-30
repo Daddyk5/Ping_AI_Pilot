@@ -1,21 +1,21 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, Loader2, Trash2 } from "lucide-react";
+import { ChevronDown, History as HistoryIcon, SearchX, Trash2, X, Zap } from "lucide-react";
 import { formatMs } from "@/components/charts/chart-theme";
 import { GameBadge } from "@/components/games/GameBadge";
 import { QualityBadge } from "@/components/optimizer/QualityBadge";
-import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { formatDateTime } from "@/lib/format";
+import { Alert, EmptyState, Skeleton } from "@/components/ui/Feedback";
+import { Field, Input, Select } from "@/components/ui/Field";
 import { CUSTOM_TARGET_ID, GAMES, getGame, isTestableGame } from "@/lib/games/catalog";
 import type { PingRunDto } from "@/lib/latency/types";
 import { cn } from "@/lib/utils";
 
 type Filters = { gameId: string; targetId: string; from: string; to: string };
 const EMPTY: Filters = { gameId: "", targetId: "", from: "", to: "" };
-
-const selectClass = "h-10 w-full rounded border border-white/10 bg-zinc-950 px-3 text-sm text-zinc-100 outline-none focus:border-cyan-300/50";
 
 function toQuery(filters: Filters) {
   const params = new URLSearchParams({ limit: "200" });
@@ -73,139 +73,188 @@ export function HistoryExplorer() {
   }
 
   const update = (patch: Partial<Filters>) => setFilters((current) => ({ ...current, ...patch }));
+  const filtered = filters.gameId !== "" || filters.targetId !== "" || filters.from !== "" || filters.to !== "";
+  const groups = groupByDay(runs ?? []);
 
   return (
     <div className="flex flex-col gap-5">
-      <Card className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_160px_160px_auto]">
-        <label className="text-xs text-zinc-500">
-          Game
-          <select className={cn(selectClass, "mt-1")} value={filters.gameId} onChange={(event) => update({ gameId: event.target.value, targetId: "" })}>
-            <option value="">All games</option>
-            {GAMES.filter(isTestableGame).map((game) => (
-              <option key={game.id} value={game.id}>
-                {game.name}
-              </option>
-            ))}
-            <option value={CUSTOM_TARGET_ID}>Custom hosts</option>
-          </select>
-        </label>
-        <label className="text-xs text-zinc-500">
-          Server region
-          <select
-            className={cn(selectClass, "mt-1")}
-            value={filters.targetId}
-            onChange={(event) => update({ targetId: event.target.value })}
-            disabled={!filters.gameId || filters.gameId === CUSTOM_TARGET_ID}
-          >
-            <option value="">{filters.gameId ? "All regions" : "Pick a game first"}</option>
-            {regions.map((region) => (
-              <option key={region.id} value={region.id}>
-                {region.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-xs text-zinc-500">
-          From
-          <input type="date" className={cn(selectClass, "mt-1 [color-scheme:dark]")} value={filters.from} max={filters.to || undefined} onChange={(event) => update({ from: event.target.value })} />
-        </label>
-        <label className="text-xs text-zinc-500">
-          To
-          <input type="date" className={cn(selectClass, "mt-1 [color-scheme:dark]")} value={filters.to} min={filters.from || undefined} onChange={(event) => update({ to: event.target.value })} />
-        </label>
-        <div className="flex items-end gap-2">
-          <Button variant="ghost" onClick={() => setFilters(EMPTY)} disabled={filters === EMPTY}>
-            Reset
-          </Button>
+      <Card className="p-4 sm:p-5">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_170px_170px]">
+          <Field label="Game">
+            <Select value={filters.gameId} onChange={(event) => update({ gameId: event.target.value, targetId: "" })}>
+              <option value="">All games</option>
+              {GAMES.filter(isTestableGame).map((game) => (
+                <option key={game.id} value={game.id}>
+                  {game.name}
+                </option>
+              ))}
+              <option value={CUSTOM_TARGET_ID}>Custom hosts</option>
+            </Select>
+          </Field>
+          <Field label="Server region">
+            <Select value={filters.targetId} onChange={(event) => update({ targetId: event.target.value })} disabled={!filters.gameId || filters.gameId === CUSTOM_TARGET_ID}>
+              <option value="">{filters.gameId ? "All regions" : "Choose a game first"}</option>
+              {regions.map((region) => (
+                <option key={region.id} value={region.id}>
+                  {region.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="From">
+            <Input type="date" value={filters.from} max={filters.to || undefined} onChange={(event) => update({ from: event.target.value })} />
+          </Field>
+          <Field label="To">
+            <Input type="date" value={filters.to} min={filters.from || undefined} onChange={(event) => update({ to: event.target.value })} />
+          </Field>
         </div>
-      </Card>
-
-      {error && <p className="rounded border border-red-400/30 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>}
-
-      <Card className="overflow-hidden">
-        <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-          <p className="text-sm text-zinc-400">
-            {loading ? (
-              <span className="inline-flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Loading
-              </span>
-            ) : (
-              `${runs?.length ?? 0} test${runs?.length === 1 ? "" : "s"}${runs?.length === 200 ? " (showing the latest 200)" : ""}`
-            )}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+          <p className="text-sm text-fg-3" aria-live="polite">
+            {loading ? "Loading…" : `${runs?.length ?? 0} test${runs?.length === 1 ? "" : "s"}${runs?.length === 200 ? " (latest 200)" : ""}`}
           </p>
-          <Button variant="ghost" onClick={deleteAll} disabled={deleting || !runs?.length} className="h-8 text-xs">
-            <Trash2 className="h-3.5 w-3.5" aria-hidden />
-            Delete all
-          </Button>
+          <div className="flex items-center gap-2">
+            {filtered && (
+              <Button variant="ghost" size="sm" onClick={() => setFilters(EMPTY)}>
+                <X aria-hidden />
+                Clear filters
+              </Button>
+            )}
+            <Button variant="danger" size="sm" onClick={deleteAll} loading={deleting} disabled={!runs?.length}>
+              <Trash2 aria-hidden />
+              Delete all
+            </Button>
+          </div>
         </div>
-
-        {runs && runs.length === 0 && !loading && <p className="p-6 text-center text-sm text-zinc-500">No tests match these filters.</p>}
-
-        <ul className="divide-y divide-white/5">
-          {runs?.map((run) => {
-            const game = getGame(run.gameId);
-            const best = run.results.find((result) => result.targetId === run.recommendedTargetId) ?? run.results[0];
-            const open = expanded === run.id;
-            return (
-              <li key={run.id}>
-                <button
-                  type="button"
-                  onClick={() => setExpanded(open ? null : run.id)}
-                  aria-expanded={open}
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-white/[0.02]"
-                >
-                  {game ? <GameBadge game={game} size="sm" /> : <span className="h-8 w-8 shrink-0 rounded-md border border-white/15" />}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm text-zinc-100">
-                      {game?.name ?? "Custom host"} · {best ? best.targetLabel : "—"}
-                    </p>
-                    <p className="text-xs text-zinc-500">
-                      {formatDateTime(run.createdAt)} · {run.results.length} region{run.results.length === 1 ? "" : "s"}
-                      {run.connectionType && ` · ${run.connectionType}`}
-                    </p>
-                  </div>
-                  {best && <QualityBadge quality={best.quality} />}
-                  <span className="w-16 text-right font-mono text-sm tabular-nums text-zinc-200">{best ? formatMs(best.stats.median) : "—"}</span>
-                  <ChevronDown className={cn("h-4 w-4 text-zinc-500 transition", open && "rotate-180")} aria-hidden />
-                </button>
-                {open && (
-                  <div className="overflow-x-auto px-4 pb-4">
-                    <table className="w-full min-w-[560px] text-left text-sm">
-                      <thead className="text-xs uppercase tracking-[0.12em] text-zinc-500">
-                        <tr>
-                          <th className="py-2 font-medium">Region</th>
-                          <th className="py-2 text-right font-medium">Median</th>
-                          <th className="py-2 text-right font-medium">95th pct</th>
-                          <th className="py-2 text-right font-medium">Jitter</th>
-                          <th className="py-2 text-right font-medium">Failed</th>
-                          <th className="py-2 pl-4 font-medium">Quality</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-white/5 tabular-nums">
-                        {run.results.map((result) => (
-                          <tr key={result.targetId}>
-                            <td className="py-2 text-zinc-200">
-                              {result.targetLabel}
-                              {result.targetId === run.recommendedTargetId && <span className="ml-2 text-[10px] font-semibold uppercase text-cyan-200">Best</span>}
-                            </td>
-                            <td className="py-2 text-right font-mono text-zinc-100">{formatMs(result.stats.median)}</td>
-                            <td className="py-2 text-right font-mono text-zinc-300">{formatMs(result.stats.p95)}</td>
-                            <td className="py-2 text-right font-mono text-zinc-300">{formatMs(result.stats.jitter)}</td>
-                            <td className="py-2 text-right font-mono text-zinc-300">{Math.round(result.stats.failureRate * 100)}%</td>
-                            <td className="py-2 pl-4">
-                              <QualityBadge quality={result.quality} />
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
       </Card>
+
+      {error && <Alert tone="error">{error}</Alert>}
+
+      {loading && !runs && (
+        <Card className="space-y-3 p-5" aria-label="Loading history">
+          {[0, 1, 2, 3].map((index) => (
+            <div key={index} className="flex items-center gap-3">
+              <Skeleton className="size-8 rounded-md" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-3 w-1/4" />
+              </div>
+              <Skeleton className="h-5 w-14" />
+            </div>
+          ))}
+        </Card>
+      )}
+
+      {runs && runs.length === 0 && !loading &&
+        (filtered ? (
+          <EmptyState
+            icon={<SearchX />}
+            title="No tests match these filters"
+            description="Try a different game, region or date range."
+            action={
+              <Button variant="secondary" onClick={() => setFilters(EMPTY)}>
+                Clear filters
+              </Button>
+            }
+          />
+        ) : (
+          <EmptyState
+            icon={<HistoryIcon />}
+            title="No tests yet"
+            description="Every test you run in the optimizer is saved here, so you can see how your connection changes over time."
+            action={
+              <ButtonLink href="/optimizer">
+                <Zap aria-hidden />
+                Run your first test
+              </ButtonLink>
+            }
+          />
+        ))}
+
+      {groups.map((group) => (
+        <section key={group.label} aria-label={group.label}>
+          <h2 className="mb-2 px-1 text-xs font-semibold text-fg-3">{group.label}</h2>
+          <Card className="divide-y divide-line overflow-hidden">
+            {group.runs.map((run) => {
+              const game = getGame(run.gameId);
+              const best = run.results.find((result) => result.targetId === run.recommendedTargetId) ?? run.results[0];
+              const open = expanded === run.id;
+              return (
+                <div key={run.id}>
+                  <button
+                    type="button"
+                    onClick={() => setExpanded(open ? null : run.id)}
+                    aria-expanded={open}
+                    className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition hover:bg-white/[0.03]"
+                  >
+                    {game ? <GameBadge game={game} size="sm" /> : <span className="size-8 shrink-0 rounded-md border border-line-strong" />}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-fg">
+                        {game?.name ?? "Custom host"} <span className="text-fg-3">·</span> {best ? best.targetLabel : "No region reachable"}
+                      </p>
+                      <p className="text-xs text-fg-3">
+                        {timeOfDay(run.createdAt)} · {run.results.length} region{run.results.length === 1 ? "" : "s"}
+                        {run.connectionType && ` · ${run.connectionType}`}
+                      </p>
+                    </div>
+                    {best && (
+                      <span className="hidden sm:block">
+                        <QualityBadge quality={best.quality} />
+                      </span>
+                    )}
+                    <span className="tabular w-16 text-right font-mono text-sm font-semibold text-fg">{best ? formatMs(best.stats.median) : "—"}</span>
+                    <ChevronDown className={cn("size-4 shrink-0 text-fg-3 transition", open && "rotate-180")} aria-hidden />
+                  </button>
+                  {open && (
+                    <div className="animate-rise border-t border-line bg-surface-2/40 px-4 py-3">
+                      <ul className="divide-y divide-line">
+                        {run.results.map((result) => (
+                          <li key={result.targetId} className="flex items-center gap-3 py-2 text-sm">
+                            <span className="min-w-0 flex-1 truncate text-fg-2">
+                              {result.targetLabel}
+                              {result.targetId === run.recommendedTargetId && (
+                                <Badge tone="accent" className="ml-2">
+                                  Best
+                                </Badge>
+                              )}
+                            </span>
+                            <span className="tabular hidden text-xs text-fg-3 sm:block">
+                              jitter {formatMs(result.stats.jitter)} · {Math.round(result.stats.failureRate * 100)}% failed
+                            </span>
+                            <QualityBadge quality={result.quality} />
+                            <span className="tabular w-16 text-right font-mono font-semibold text-fg">{formatMs(result.stats.median)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </Card>
+        </section>
+      ))}
     </div>
   );
+}
+
+const timeFormat = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
+const dayFormat = new Intl.DateTimeFormat(undefined, { weekday: "long", month: "short", day: "numeric" });
+const timeOfDay = (iso: string) => timeFormat.format(new Date(iso));
+
+/** Groups newest-first runs into "Today", "Yesterday", then dated sections (local time). */
+function groupByDay(runs: PingRunDto[]) {
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const groups: Array<{ label: string; runs: PingRunDto[] }> = [];
+  for (const run of runs) {
+    const date = new Date(run.createdAt);
+    const day = new Date(date);
+    day.setHours(0, 0, 0, 0);
+    const daysAgo = Math.round((startOfToday.getTime() - day.getTime()) / 86_400_000);
+    const label = daysAgo === 0 ? "Today" : daysAgo === 1 ? "Yesterday" : dayFormat.format(date);
+    const last = groups.at(-1);
+    if (last?.label === label) last.runs.push(run);
+    else groups.push({ label, runs: [run] });
+  }
+  return groups;
 }

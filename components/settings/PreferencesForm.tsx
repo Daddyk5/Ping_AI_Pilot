@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { AuthAlert } from "@/components/auth/AuthField";
+import { Field, Select } from "@/components/ui/Field";
 import { Switch } from "@/components/ui/Switch";
 import { GAMES, isTestableGame } from "@/lib/games/catalog";
 import type { Settings } from "@/lib/settings";
@@ -31,22 +32,17 @@ export function PreferencesForm({ initial }: { initial: Settings }) {
   }
 
   return (
-    <div className="space-y-4">
-      <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-        Default game in the optimizer
-        <select
-          value={settings.defaultGame ?? ""}
-          onChange={(event) => save({ ...settings, defaultGame: event.target.value || null })}
-          className="mt-2 h-11 w-full rounded border border-white/10 bg-zinc-950 px-3 text-sm normal-case tracking-normal text-zinc-100 outline-none focus:border-cyan-300/50"
-        >
+    <div className="space-y-5">
+      <Field label="Default game in the optimizer" hint="The optimizer opens on this game.">
+        <Select value={settings.defaultGame ?? ""} onChange={(event) => save({ ...settings, defaultGame: event.target.value || null })}>
           <option value="">None (Dota 2)</option>
           {GAMES.filter(isTestableGame).map((game) => (
             <option key={game.id} value={game.id}>
               {game.name}
             </option>
           ))}
-        </select>
-      </label>
+        </Select>
+      </Field>
 
       <div className="space-y-3">
         <Switch
@@ -59,7 +55,7 @@ export function PreferencesForm({ initial }: { initial: Settings }) {
           checked={settings.notifyDegradation}
           onCheckedChange={(checked) => save({ ...settings, notifyDegradation: checked })}
         />
-        <p className="text-xs leading-5 text-zinc-500">
+        <p className="text-xs leading-5 text-fg-3">
           Email notifications aren&apos;t being sent yet. Your choices are saved and will apply when they launch.
         </p>
       </div>

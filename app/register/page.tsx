@@ -6,15 +6,13 @@ import { RegisterForm } from "@/components/auth/RegisterForm";
 export default function RegisterPage() {
   return (
     <AuthCard
-      badge="New Pilot"
-      badgeTone="green"
-      title="Create account"
-      description="Register to save latency history and compare route quality over time."
+      title="Create your account"
+      description="Free. Save your tests and track your connection quality over time."
       footer={
         <>
           Already registered?{" "}
-          <Link href="/login" className="font-semibold text-cyan-200 hover:text-cyan-100">
-            Login
+          <Link href="/login" className="font-semibold text-accent hover:text-accent-strong">
+            Log in
           </Link>
         </>
       }

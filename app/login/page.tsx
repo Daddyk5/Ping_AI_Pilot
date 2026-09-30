@@ -12,14 +12,12 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
 
   return (
     <AuthCard
-      badge="Secure Access"
-      badgeTone="cyan"
-      title="Login"
-      description="Enter your account details to return to the telemetry console."
+      title="Welcome back"
+      description="Log in to test your servers and see your connection history."
       footer={
         <>
           No account?{" "}
-          <Link href="/register" className="font-semibold text-cyan-200 hover:text-cyan-100">
+          <Link href="/register" className="font-semibold text-accent hover:text-accent-strong">
             Create one
           </Link>
         </>

@@ -1,22 +1,25 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CircleStop, Loader2, Play, TriangleAlert } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Check, CircleStop, Loader2, Play, Plus, RotateCcw } from "lucide-react";
 import { SuggestionsCard } from "@/components/suggestions/SuggestionsCard";
 import { LatencyTrendChart, type TrendPoint } from "@/components/charts/LatencyTrendChart";
 import { RegionRankingChart } from "@/components/charts/RegionRankingChart";
 import { SampleTimelineChart } from "@/components/charts/SampleTimelineChart";
-import { GameBadge } from "@/components/games/GameBadge";
 import { GamePicker, type PickerValue } from "@/components/optimizer/GamePicker";
 import { MethodNotice } from "@/components/optimizer/MethodNotice";
+import { LiveTestPanel } from "@/components/optimizer/LiveTestPanel";
 import { RecommendationCard } from "@/components/optimizer/RecommendationCard";
 import { ResultsTable, type TableRow } from "@/components/optimizer/ResultsTable";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { Card, CardHeader } from "@/components/ui/Card";
+import { Alert } from "@/components/ui/Feedback";
+import { Field, Input } from "@/components/ui/Field";
 import { CUSTOM_TARGET_ID, customTargetUrl, getGame, normalizeCustomHost, PROBE_SITES, probeUrl, type Game } from "@/lib/games/catalog";
 import { DEFAULT_SAMPLES, getConnectionType, probeTarget } from "@/lib/latency/probe";
 import { pickRecommendation, rankTargets, type Sample } from "@/lib/latency/stats";
 import type { PingRunDto } from "@/lib/latency/types";
+import { cn } from "@/lib/utils";
 
 type Target = { targetId: string; label: string; location: string; nearby: boolean; url: string; customHost?: string };
 type LiveState = Record<string, { samples: Sample[]; status: "pending" | "running" | "done" }>;
@@ -47,6 +50,8 @@ export function OptimizerExperience({ initialGame }: { initialGame?: string }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [history, setHistory] = useState<PingRunDto[]>([]);
   const abortRef = useRef<AbortController | null>(null);
+  const liveRef = useRef<HTMLDivElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   const customHost = normalizeCustomHost(customInput);
   const allTargets = useMemo<Target[]>(() => {
@@ -73,6 +78,14 @@ export function OptimizerExperience({ initialGame }: { initialGame?: string }) {
   }, [pick, loadHistory]);
 
   useEffect(() => () => abortRef.current?.abort(), []);
+
+  // On phones the setup card fills the screen, so bring the live panel / result into view.
+  useEffect(() => {
+    const target = phase === "running" ? liveRef.current : phase === "done" ? resultRef.current : null;
+    if (!target) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+  }, [phase]);
 
   function changeGame(next: PickerValue) {
     setPick(next);
@@ -187,142 +200,193 @@ export function OptimizerExperience({ initialGame }: { initialGame?: string }) {
 
   const running = phase === "running" || phase === "saving";
   const progress = targets.length ? finished.length / targets.length : 0;
+  const current = targets.find((target) => live[target.targetId]?.status === "running") ?? null;
 
   return (
     <div className="flex flex-col gap-5">
-      <Card className="space-y-5 p-5">
+      {/* Setup: game -> regions -> run. */}
+      <Card className="p-5 sm:p-6">
+        <StepLabel number={1}>Choose your game</StepLabel>
         <GamePicker value={pick} onChange={changeGame} disabled={running} />
 
         {game?.comingSoon ? (
-          <div className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/[0.02] p-4 text-sm text-zinc-300">
-            <GameBadge game={game} />
-            <div>
-              <p className="font-semibold text-zinc-100">{game.name}: coming soon</p>
-              <p className="mt-1 leading-6 text-zinc-400">{game.comingSoon}</p>
-            </div>
-          </div>
+          <Alert tone="info" title={`${game.name} is coming soon`} className="mt-5">
+            {game.comingSoon}
+          </Alert>
         ) : (
-          <>
-            {game ? (
-              <fieldset disabled={running}>
-                <legend className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                  Regions to test ({targets.length}/{allTargets.length})
-                </legend>
-                <div className="flex flex-wrap gap-2">
-                  {allTargets.map((target) => {
-                    const on = !disabledRegions.has(target.targetId);
-                    return (
-                      <button
-                        key={target.targetId}
-                        type="button"
-                        aria-pressed={on}
-                        onClick={() => toggleRegion(target.targetId)}
-                        className={`rounded-full border px-3 py-1 text-xs transition disabled:opacity-60 ${
-                          on ? "border-cyan-300/40 bg-cyan-300/10 text-cyan-100" : "border-white/10 text-zinc-500 line-through"
-                        }`}
-                      >
-                        {target.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </fieldset>
-            ) : (
-              <label className="block max-w-lg">
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">Custom host</span>
-                <input
-                  value={customInput}
-                  onChange={(event) => setCustomInput(event.target.value)}
-                  disabled={running}
-                  placeholder="e.g. my-server.example.com"
-                  className="mt-2 h-11 w-full rounded border border-white/10 bg-black/35 px-3 font-mono text-sm text-zinc-100 outline-none focus:border-cyan-300/50"
-                />
-                <span className="mt-1.5 block text-xs leading-5 text-zinc-500">
-                  Must serve HTTPS. Most game servers don&apos;t, so use a website or web API hosted in the same data center.
-                  {customInput && !customHost && <span className="text-red-300"> Enter a hostname or IPv4 address.</span>}
-                </span>
-              </label>
-            )}
-
-            <div className="flex flex-wrap items-center gap-3">
+          <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+            <div className="min-w-0">
+              <StepLabel number={2}>{game ? "Regions to test" : "Server to test"}</StepLabel>
+              {game ? (
+                <RegionSelector targets={allTargets} disabled={disabledRegions} onToggle={toggleRegion} onReset={() => setDisabledRegions(new Set())} locked={running} />
+              ) : (
+                <Field
+                  label="Custom host"
+                  hint={
+                    customInput && !customHost ? (
+                      <span className="text-danger">Enter a hostname like play.example.com, or an IPv4 address.</span>
+                    ) : (
+                      "Must serve HTTPS. Most game servers don\u2019t, so use a website or web API hosted in the same data center."
+                    )
+                  }
+                  className="max-w-lg"
+                >
+                  <Input value={customInput} onChange={(event) => setCustomInput(event.target.value)} disabled={running} placeholder="my-server.example.com" className="font-mono" />
+                </Field>
+              )}
+            </div>
+            <div className="flex flex-col gap-2 lg:items-end">
               {running ? (
-                <Button variant="ghost" onClick={() => abortRef.current?.abort()} disabled={phase === "saving"}>
-                  {phase === "saving" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <CircleStop className="h-4 w-4" aria-hidden />}
-                  {phase === "saving" ? "Saving results" : `Stop (${finished.length}/${targets.length})`}
+                <Button variant="secondary" size="lg" onClick={() => abortRef.current?.abort()} disabled={phase === "saving"} className="w-full lg:w-auto">
+                  {phase === "saving" ? <Loader2 className="animate-spin" aria-hidden /> : <CircleStop aria-hidden />}
+                  {phase === "saving" ? "Saving results\u2026" : "Stop test"}
                 </Button>
               ) : (
-                <Button onClick={run} disabled={targets.length === 0}>
-                  <Play className="h-4 w-4" aria-hidden />
-                  {phase === "done" ? "Run again" : "Start test"}
+                <Button size="lg" onClick={run} disabled={targets.length === 0} className="w-full lg:w-auto">
+                  {phase === "done" ? <RotateCcw aria-hidden /> : <Play aria-hidden />}
+                  {phase === "done" ? "Test again" : `Test ${targets.length} region${targets.length === 1 ? "" : "s"}`}
                 </Button>
               )}
-              <p className="text-xs text-zinc-500">
-                {DEFAULT_SAMPLES} requests per region · about {Math.max(5, Math.round(targets.length * 1.5))}s
+              <p className="text-center text-xs text-fg-3 lg:text-right">
+                {DEFAULT_SAMPLES} requests per region · about {Math.max(5, Math.round(targets.length * 1.5))} seconds
               </p>
             </div>
-            {running && (
-              <div className="h-1 overflow-hidden rounded-full bg-white/5" role="progressbar" aria-valuenow={Math.round(progress * 100)} aria-valuemin={0} aria-valuemax={100}>
-                <div className="h-full bg-cyan-300/70 transition-all" style={{ width: `${progress * 100}%` }} />
-              </div>
-            )}
-          </>
+          </div>
         )}
 
         <MethodNotice />
       </Card>
 
-      {error && <p className="rounded border border-white/10 bg-white/[0.03] p-3 text-sm text-zinc-300">{error}</p>}
+      {error && <Alert tone="info">{error}</Alert>}
       {saveError && (
-        <p className="flex items-center gap-2 rounded border border-yellow-300/30 bg-yellow-300/10 p-3 text-sm text-yellow-100">
-          <TriangleAlert className="h-4 w-4" aria-hidden />
-          Results shown below but not saved to your history: {saveError}
-        </p>
+        <Alert tone="warning" title="Results not saved to your history">
+          {saveError}
+        </Alert>
       )}
 
-      {sortedRows.length > 0 && (
-        <section className="grid gap-5 xl:grid-cols-[340px_1fr]">
-          <div className="space-y-5">
-            {phase === "done" && (
-              <RecommendationCard
-                game={game}
-                best={recommendation ? { label: recommendation.best.label, location: recommendation.best.location, stats: recommendation.best.stats } : null}
-                runnerUp={recommendation?.runnerUp ? { label: recommendation.runnerUp.label, location: recommendation.runnerUp.location, stats: recommendation.runnerUp.stats } : null}
-                isTie={recommendation?.isTie ?? false}
-              />
-            )}
+      {running && (
+        <div ref={liveRef} className="scroll-mt-20">
+        <LiveTestPanel
+          currentLabel={current?.label ?? null}
+          done={finished.length}
+          total={targets.length}
+          progress={progress}
+          saving={phase === "saving"}
+          leaderboard={ranked.map((target) => ({ id: target.targetId, label: target.label, median: target.stats.median, quality: target.quality }))}
+        />
+        </div>
+      )}
+
+      {phase === "done" && ranked.length > 0 && (
+        <section ref={resultRef} className="grid scroll-mt-20 animate-rise gap-5 xl:grid-cols-[380px_minmax(0,1fr)]">
+          <div className="flex flex-col gap-5">
+            <RecommendationCard
+              game={game}
+              best={recommendation ? { label: recommendation.best.label, location: recommendation.best.location, stats: recommendation.best.stats, quality: recommendation.best.quality } : null}
+              runnerUp={recommendation?.runnerUp ? { label: recommendation.runnerUp.label, location: recommendation.runnerUp.location, stats: recommendation.runnerUp.stats, quality: recommendation.runnerUp.quality } : null}
+              isTie={recommendation?.isTie ?? false}
+            />
             {focus && (
-              <Card className="p-4">
+              <Card className="p-5">
                 <SampleTimelineChart label={focus.label} samples={focus.samples} median={focus.stats.median} />
               </Card>
             )}
           </div>
-          <Card className="space-y-5 p-4">
-            {ranked.length > 0 && (
-              <RegionRankingChart
-                results={ranked.map((target) => ({ targetId: target.targetId, targetLabel: target.label, endpointHost: target.url, samples: target.samples, stats: target.stats, score: target.score, quality: target.quality }))}
-                recommendedId={recommendedId}
-                selectedId={focusId}
-                onSelect={setSelectedId}
-              />
-            )}
-            <ResultsTable rows={sortedRows} recommendedId={recommendedId} selectedId={focusId} onSelect={setSelectedId} />
+          <Card className="min-w-0 p-5">
+            <CardHeader title="All regions" description="Select a region to see its individual requests." />
+            <div className="hidden md:block">
+            <RegionRankingChart
+              results={ranked.map((target) => ({ targetId: target.targetId, targetLabel: target.label, endpointHost: target.url, samples: target.samples, stats: target.stats, score: target.score, quality: target.quality }))}
+              recommendedId={recommendedId}
+              selectedId={focusId}
+              onSelect={setSelectedId}
+            />
+            </div>
+            <div className="md:mt-5">
+              <ResultsTable rows={sortedRows} recommendedId={recommendedId} selectedId={focusId} onSelect={setSelectedId} />
+            </div>
           </Card>
         </section>
       )}
 
       {!game?.comingSoon && (
-        <section className="grid gap-5 xl:grid-cols-[1fr_400px]">
-          <Card className="p-4">
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-cyan-200">Connection quality over time</h2>
+        <section className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_400px]">
+          <Card className="min-w-0 p-5">
+            <CardHeader title="Connection quality over time" description={trendTargetId ? `${trendLabel} \u00b7 your saved tests` : undefined} />
             {trendTargetId ? (
-              <LatencyTrendChart points={trendPoints} title={`${trendLabel}: median round-trip time and jitter across your saved tests`} />
+              <LatencyTrendChart points={trendPoints} title="Median round-trip time and jitter" />
             ) : (
-              <p className="text-sm text-zinc-500">Run a test to start tracking your connection over time.</p>
+              <p className="text-sm text-fg-3">Run a test to start tracking your connection over time.</p>
             )}
           </Card>
           {/* Keyed on the newest saved run so a fresh test refreshes the suggestions. */}
           <SuggestionsCard scope={pick} refreshKey={history[0]?.id ?? "none"} />
         </section>
+      )}
+    </div>
+  );
+}
+
+function StepLabel({ number, children }: { number: number; children: ReactNode }) {
+  return (
+    <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-fg">
+      <span className="grid size-5 place-items-center rounded-full bg-accent-soft text-[11px] font-bold text-accent">{number}</span>
+      {children}
+    </p>
+  );
+}
+
+function RegionSelector({
+  targets,
+  disabled,
+  onToggle,
+  onReset,
+  locked,
+}: {
+  targets: Target[];
+  disabled: Set<string>;
+  onToggle: (targetId: string) => void;
+  onReset: () => void;
+  locked: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = targets.length - disabled.size;
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <p className="text-sm text-fg-2">{selected === targets.length ? `All ${targets.length} regions` : `${selected} of ${targets.length} regions`}</p>
+        <button type="button" onClick={() => setOpen((value) => !value)} disabled={locked} aria-expanded={open} className="text-sm font-medium text-accent hover:text-accent-strong disabled:opacity-50">
+          {open ? "Done" : "Choose regions"}
+        </button>
+        {disabled.size > 0 && !open && (
+          <button type="button" onClick={onReset} disabled={locked} className="text-sm text-fg-3 hover:text-fg-2 disabled:opacity-50">
+            Reset
+          </button>
+        )}
+      </div>
+      {open && (
+        <fieldset disabled={locked} className="mt-3 flex animate-rise flex-wrap gap-2">
+          <legend className="sr-only">Regions to test</legend>
+          {targets.map((target) => {
+            const on = !disabled.has(target.targetId);
+            return (
+              <button
+                key={target.targetId}
+                type="button"
+                aria-pressed={on}
+                onClick={() => onToggle(target.targetId)}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition",
+                  on ? "border-accent/40 bg-accent-soft text-fg" : "border-line text-fg-3 hover:border-line-strong",
+                )}
+              >
+                {on ? <Check className="size-3 text-accent" aria-hidden /> : <Plus className="size-3" aria-hidden />}
+                {target.label}
+              </button>
+            );
+          })}
+        </fieldset>
       )}
     </div>
   );

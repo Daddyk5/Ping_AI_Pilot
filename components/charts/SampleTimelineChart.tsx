@@ -13,14 +13,14 @@ export function SampleTimelineChart({ label, samples, median }: { label: string;
 
   return (
     <figure>
-      <figcaption className="mb-2 text-sm text-zinc-400">
-        {label}: each request&apos;s round-trip time{median !== null && <> (median {formatMs(median)})</>}
+      <figcaption className="mb-2 text-sm text-fg-3">
+        {label}: each request&apos;s round-trip time in ms{median !== null && <> · median {formatMs(median)}</>}
       </figcaption>
       <ResponsiveContainer width="100%" height={200} minWidth={0}>
         <LineChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
           <CartesianGrid vertical={false} stroke={chartColors.grid} />
           <XAxis dataKey="request" {...axisProps} label={{ value: "Request #", position: "insideBottomRight", offset: -2, fill: chartColors.textMuted, fontSize: 11 }} />
-          <YAxis {...axisProps} axisLine={false} width={44} unit=" ms" domain={[0, "auto"]} />
+          <YAxis {...axisProps} axisLine={false} width={36} domain={[0, "auto"]} />
           <Tooltip
             cursor={{ stroke: chartColors.axis }}
             content={({ active, payload }) => {
@@ -52,7 +52,7 @@ export function SampleTimelineChart({ label, samples, median }: { label: string;
         </LineChart>
       </ResponsiveContainer>
       {failures.length > 0 && (
-        <p className="mt-1 flex items-center gap-1.5 text-xs text-zinc-400">
+        <p className="mt-1 flex items-center gap-1.5 text-xs text-fg-3">
           <span className="h-2 w-2 rounded-full" style={{ background: statusColors.critical }} />
           {failures.length} failed or timed-out request{failures.length === 1 ? "" : "s"} (gaps in the line)
         </p>

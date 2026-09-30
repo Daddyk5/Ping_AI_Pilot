@@ -50,11 +50,11 @@ export function ForgotPasswordForm() {
 
   return (
     <form action={handleSubmit} className="space-y-4">
-      <AuthField label="Email" name="email" type="email" autoComplete="email" required placeholder="pilot@example.com" />
+      <AuthField label="Email" name="email" type="email" autoComplete="email" required placeholder="you@example.com" />
       {error && <AuthAlert tone="error">{error}</AuthAlert>}
       <button type="submit" disabled={isPending} className={authSubmitClassName}>
         <Mail className="h-4 w-4" aria-hidden />
-        {isPending ? "Sending" : "Send reset link"}
+        {isPending ? "Sending…" : "Send reset link"}
       </button>
     </form>
   );

@@ -76,16 +76,16 @@ export function LoginForm({ next, initialError }: { next?: string; initialError?
 
   return (
     <form action={handleSubmit} className="space-y-4">
-      <AuthField label="Email" name="email" type="email" autoComplete="email" required placeholder="pilot@example.com" />
+      <AuthField label="Email" name="email" type="email" autoComplete="email" required placeholder="you@example.com" />
       <AuthField
         label="Password"
         name="password"
         type="password"
         autoComplete="current-password"
         required
-        placeholder="Enter password"
+        placeholder="Your password"
         hint={
-          <Link href="/forgot-password" className="normal-case tracking-normal text-cyan-200 hover:text-cyan-100">
+          <Link href="/forgot-password" className="text-xs font-medium text-accent hover:text-accent-strong">
             Forgot password?
           </Link>
         }
@@ -94,7 +94,7 @@ export function LoginForm({ next, initialError }: { next?: string; initialError?
         <AuthAlert tone="error">
           {error}
           {unconfirmedEmail && (
-            <button type="button" onClick={resendConfirmation} disabled={isPending} className="mt-2 block font-semibold underline">
+            <button type="button" onClick={resendConfirmation} disabled={isPending} className="mt-2 block font-semibold text-fg underline underline-offset-4">
               Resend confirmation email
             </button>
           )}
@@ -103,7 +103,7 @@ export function LoginForm({ next, initialError }: { next?: string; initialError?
       {notice && <AuthAlert tone="success">{notice}</AuthAlert>}
       <button type="submit" disabled={isPending} className={authSubmitClassName}>
         <LogIn className="h-4 w-4" aria-hidden />
-        {isPending ? "Authenticating" : "Login"}
+        {isPending ? "Logging in…" : "Log in"}
       </button>
     </form>
   );

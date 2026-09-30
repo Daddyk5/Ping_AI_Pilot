@@ -19,7 +19,7 @@ const dateTimeFormat = new Intl.DateTimeFormat(undefined, { month: "short", day:
 export function LatencyTrendChart({ points, title }: { points: TrendPoint[]; title: string }) {
   if (points.length < 2) {
     return (
-      <div className="grid h-40 place-items-center rounded border border-dashed border-white/10 text-center text-sm text-zinc-500">
+      <div className="grid h-40 place-items-center rounded-xl border border-dashed border-line-strong px-4 text-center text-sm text-fg-3">
         Run at least two tests to see a trend over time.
       </div>
     );
@@ -29,7 +29,7 @@ export function LatencyTrendChart({ points, title }: { points: TrendPoint[]; tit
 
   return (
     <figure>
-      <figcaption className="mb-2 text-sm text-zinc-400">{title}</figcaption>
+      <figcaption className="mb-2 text-sm text-fg-3">{title} (ms)</figcaption>
       <ResponsiveContainer width="100%" height={240} minWidth={0}>
         <LineChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
           <CartesianGrid vertical={false} stroke={chartColors.grid} />
@@ -41,13 +41,13 @@ export function LatencyTrendChart({ points, title }: { points: TrendPoint[]; tit
             {...axisProps}
             tickFormatter={(value) => dateFormat.format(new Date(value))}
           />
-          <YAxis {...axisProps} axisLine={false} width={44} unit=" ms" domain={[0, "auto"]} />
+          <YAxis {...axisProps} axisLine={false} width={36} domain={[0, "auto"]} />
           <Legend
             verticalAlign="top"
             align="left"
             height={28}
             content={() => (
-              <ul className="flex gap-4 text-xs text-zinc-300">
+              <ul className="flex gap-4 text-xs text-fg-2">
                 {SERIES.map((series) => (
                   <li key={series.key} className="flex items-center gap-1.5">
                     <span className="h-0.5 w-4 rounded" style={{ background: series.color }} />

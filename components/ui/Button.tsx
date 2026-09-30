@@ -1,24 +1,44 @@
-import type { ButtonHTMLAttributes } from "react";
+import Link from "next/link";
+import type { ButtonHTMLAttributes, ComponentProps } from "react";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type ButtonVariant = "primary" | "ghost";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+export type ButtonSize = "sm" | "md" | "lg";
 
-export function Button({
-  className,
-  variant = "primary",
-  ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant }) {
+const base =
+  "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg font-semibold transition-[background-color,border-color,color,box-shadow,transform] duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0";
+
+const variants: Record<ButtonVariant, string> = {
+  primary: "bg-accent text-accent-ink shadow-glow hover:bg-accent-strong",
+  secondary: "border border-line-strong bg-surface-2 text-fg hover:border-white/25 hover:bg-surface-3",
+  ghost: "text-fg-2 hover:bg-white/5 hover:text-fg",
+  danger: "border border-red-400/30 bg-danger-soft text-danger hover:border-red-400/50 hover:bg-red-500/15",
+};
+
+const sizes: Record<ButtonSize, string> = {
+  sm: "h-8 px-3 text-xs",
+  md: "h-10 px-4 text-sm",
+  lg: "h-12 px-6 text-base",
+};
+
+export function buttonClass({ variant = "primary", size = "md", className }: { variant?: ButtonVariant; size?: ButtonSize; className?: string } = {}) {
+  return cn(base, variants[variant], sizes[size], className);
+}
+
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant; size?: ButtonSize; loading?: boolean };
+
+export function Button({ className, variant, size, loading, disabled, children, type = "button", ...props }: ButtonProps) {
   return (
-    <button
-      className={cn(
-        "inline-flex h-10 items-center justify-center gap-2 rounded border px-4 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300",
-        variant === "primary" &&
-          "border-cyan-300/50 bg-cyan-300/15 text-cyan-100 shadow-[0_0_18px_rgba(0,243,255,0.18)] hover:bg-cyan-300/25",
-        variant === "ghost" &&
-          "border-white/10 bg-white/[0.03] text-zinc-300 hover:border-cyan-300/40 hover:text-cyan-100",
-        className,
-      )}
-      {...props}
-    />
+    <button type={type} className={buttonClass({ variant, size, className })} disabled={disabled || loading} aria-busy={loading || undefined} {...props}>
+      {loading && <Loader2 className="animate-spin" aria-hidden />}
+      {children}
+    </button>
   );
+}
+
+type ButtonLinkProps = ComponentProps<typeof Link> & { variant?: ButtonVariant; size?: ButtonSize };
+
+export function ButtonLink({ className, variant, size, ...props }: ButtonLinkProps) {
+  return <Link className={buttonClass({ variant, size, className })} {...props} />;
 }
