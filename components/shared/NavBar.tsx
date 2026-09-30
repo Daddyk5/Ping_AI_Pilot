@@ -4,25 +4,19 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Activity, BarChart3, Gauge, History, Menu, RadioTower, Radar, Settings, UserCircle, X, Zap } from "lucide-react";
+import { Menu, RadioTower, UserCircle, X } from "lucide-react";
 import { SignOutButton } from "@/components/auth/SignOutButton";
-import { Badge } from "@/components/ui/Badge";
+import { useSessionUser } from "@/components/shared/useSessionUser";
 import { Button } from "@/components/ui/Button";
+import { isActive, NAV_ITEMS } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
-
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: Gauge },
-  { href: "/livetest", label: "Live Test", icon: Radar },
-  { href: "/optimizer", label: "Optimizer", icon: Zap },
-  { href: "/compare", label: "Compare", icon: BarChart3 },
-  { href: "/history", label: "History", icon: History },
-  { href: "/settings", label: "Settings", icon: Settings },
-];
 
 export function NavBar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const shouldReduceMotion = useReducedMotion();
+  const sessionUser = useSessionUser();
+  const navItems = NAV_ITEMS.filter((item) => !item.adminOnly || sessionUser?.isAdmin);
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-[#09090b]/82 backdrop-blur-xl">
@@ -47,29 +41,17 @@ export function NavBar() {
             >
               PingPilot AI
             </motion.p>
-            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-zinc-500">Lead Flight Engineer</p>
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-zinc-500">Game ping optimizer</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            className="relative hidden h-10 w-10 place-items-center rounded border border-white/10 bg-white/[0.03] text-zinc-300 transition hover:border-cyan-300/40 hover:text-cyan-100 sm:grid"
-            aria-label="Notifications"
-          >
-            <Activity className="h-4 w-4" aria-hidden />
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-lime-300 shadow-[0_0_12px_rgba(190,242,100,0.9)]" />
-          </button>
-          <button
-            type="button"
-            className="hidden h-10 w-10 place-items-center rounded border border-white/10 bg-white/[0.03] text-zinc-300 transition hover:border-cyan-300/40 hover:text-cyan-100 sm:grid"
-            aria-label="Profile"
+          <Link
+            href="/settings"
+            className="hidden items-center gap-2 rounded border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-zinc-300 transition hover:border-cyan-300/40 hover:text-cyan-100 sm:flex"
           >
             <UserCircle className="h-4 w-4" aria-hidden />
-          </button>
-          <Badge tone="green" className="hidden sm:inline-flex">
-            <Activity className="mr-1 h-3 w-3" aria-hidden />
-            Telemetry Live
-          </Badge>
+            <span className="max-w-40 truncate">{sessionUser?.displayName ?? sessionUser?.email ?? "Account"}</span>
+          </Link>
           <SignOutButton />
           <Button
             type="button"
@@ -95,7 +77,7 @@ export function NavBar() {
             <div className="grid gap-2 sm:grid-cols-2">
               {navItems.map((item, index) => {
                 const Icon = item.icon;
-                const active = pathname === item.href || (pathname === "/" && item.href === "/dashboard");
+                const active = isActive(pathname, item.href);
 
                 return (
                   <motion.div

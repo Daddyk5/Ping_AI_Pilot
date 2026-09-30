@@ -3,20 +3,39 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-export function Switch({ label, defaultChecked = false }: { label: string; defaultChecked?: boolean }) {
-  const [checked, setChecked] = useState(defaultChecked);
+type SwitchProps = {
+  label: string;
+  /** Controlled mode: pass `checked` + `onCheckedChange`. */
+  checked?: boolean;
+  onCheckedChange?: (checked: boolean) => void;
+  /** Uncontrolled mode. */
+  defaultChecked?: boolean;
+  disabled?: boolean;
+};
+
+export function Switch({ label, checked: controlled, onCheckedChange, defaultChecked = false, disabled }: SwitchProps) {
+  const [internal, setInternal] = useState(defaultChecked);
+  const checked = controlled ?? internal;
+
+  function toggle() {
+    const next = !checked;
+    if (controlled === undefined) setInternal(next);
+    onCheckedChange?.(next);
+  }
 
   return (
     <button
       type="button"
-      aria-pressed={checked}
-      onClick={() => setChecked((value) => !value)}
-      className="flex w-full items-center justify-between gap-4 rounded border border-white/10 bg-white/[0.03] px-4 py-3 text-left text-sm text-zinc-200"
+      role="switch"
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={toggle}
+      className="flex w-full items-center justify-between gap-4 rounded border border-white/10 bg-white/[0.03] px-4 py-3 text-left text-sm text-zinc-200 disabled:opacity-60"
     >
       <span>{label}</span>
       <span
         className={cn(
-          "relative h-6 w-11 rounded-full border transition",
+          "relative h-6 w-11 shrink-0 rounded-full border transition",
           checked ? "border-cyan-300/60 bg-cyan-300/20" : "border-white/15 bg-zinc-900",
         )}
       >

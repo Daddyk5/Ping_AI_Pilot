@@ -1,16 +1,16 @@
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
-import { getPublicSupabaseConfig } from "@/lib/supabase/public-config";
+import { getPublicSupabaseConfig, MISSING_SUPABASE_ENV } from "@/lib/supabase/public-config";
 
 export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
-  const { supabaseUrl, publishableKey } = getPublicSupabaseConfig();
+  const config = getPublicSupabaseConfig();
 
-  if (!supabaseUrl || !publishableKey) {
-    throw new Error("Missing Supabase server environment variables.");
+  if (!config) {
+    throw new Error(MISSING_SUPABASE_ENV);
   }
 
-  return createServerClient(supabaseUrl, publishableKey, {
+  return createServerClient(config.supabaseUrl, config.publishableKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -19,7 +19,8 @@ export async function createSupabaseServerClient() {
         try {
           cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
         } catch {
-          // Server Components can read cookies but cannot always write them.
+          // Server Components cannot write cookies. Safe to ignore because proxy.ts
+          // refreshes the session and writes cookies on every request.
         }
       },
     },

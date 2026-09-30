@@ -7,13 +7,13 @@ export async function updateSession(request: NextRequest) {
     request,
   });
 
-  const { supabaseUrl, publishableKey } = getPublicSupabaseConfig();
+  const config = getPublicSupabaseConfig();
 
-  if (!supabaseUrl || !publishableKey) {
+  if (!config) {
     return { response, user: null };
   }
 
-  const supabase = createServerClient(supabaseUrl, publishableKey, {
+  const supabase = createServerClient(config.supabaseUrl, config.publishableKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -28,6 +28,8 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
+  // Do not run code between createServerClient and getUser(): getUser() is what
+  // refreshes an expired access token and triggers setAll() with the new cookies.
   const {
     data: { user },
   } = await supabase.auth.getUser();
