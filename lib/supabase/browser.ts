@@ -1,22 +1,17 @@
 "use client";
 
 import { createBrowserClient } from "@supabase/ssr";
-import { getPublicSupabaseConfig } from "@/lib/supabase/public-config";
+import { getPublicSupabaseConfig, MISSING_SUPABASE_ENV } from "@/lib/supabase/public-config";
 
-export const MISSING_SUPABASE_BROWSER_ENV =
-  "Supabase public environment variables are missing. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY in your deployment environment, then rebuild.";
+export const MISSING_SUPABASE_BROWSER_ENV = MISSING_SUPABASE_ENV;
 
 export function createSupabaseBrowserClient() {
-  const { supabaseUrl, publishableKey } = getPublicSupabaseConfig();
+  const config = getPublicSupabaseConfig();
 
-  if (!supabaseUrl || !publishableKey) {
+  if (!config) {
     return null;
   }
 
-  try {
-    return createBrowserClient(supabaseUrl, publishableKey);
-  } catch (error) {
-    console.error("Supabase browser client could not be created.", error);
-    return null;
-  }
+  // createBrowserClient is a singleton in the browser, so calling this repeatedly is cheap.
+  return createBrowserClient(config.supabaseUrl, config.publishableKey);
 }

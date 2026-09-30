@@ -1,10 +1,11 @@
-export const FALLBACK_SUPABASE_URL = "https://ciyexgbksveavzkvmcsm.supabase.co";
-export const FALLBACK_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Qhb_1WUvGAr5MIbkToOdVQ_yu213aaV";
+// NEXT_PUBLIC_* values are inlined into the browser bundle at build time, but ONLY
+// when referenced literally as `process.env.NEXT_PUBLIC_X`. Dynamic lookups such as
+// `process.env[name]` are undefined in the browser, so never refactor these into a helper.
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+const SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim();
 
-function readEnv(name: string) {
-  const value = process.env[name]?.trim();
-  return value ? value : undefined;
-}
+export const MISSING_SUPABASE_ENV =
+  "Supabase public environment variables are missing. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, then rebuild.";
 
 function isValidHttpUrl(value: string) {
   try {
@@ -16,14 +17,9 @@ function isValidHttpUrl(value: string) {
 }
 
 export function getPublicSupabaseConfig() {
-  const envUrl = readEnv("NEXT_PUBLIC_SUPABASE_URL");
-  const envKey = readEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY") ?? readEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
-  const supabaseUrl = envUrl && isValidHttpUrl(envUrl) ? envUrl : FALLBACK_SUPABASE_URL;
-  const publishableKey = envKey ?? FALLBACK_SUPABASE_PUBLISHABLE_KEY;
+  if (!SUPABASE_URL || !isValidHttpUrl(SUPABASE_URL) || !SUPABASE_PUBLISHABLE_KEY) {
+    return null;
+  }
 
-  return {
-    supabaseUrl,
-    publishableKey,
-    usingFallback: supabaseUrl === FALLBACK_SUPABASE_URL || publishableKey === FALLBACK_SUPABASE_PUBLISHABLE_KEY,
-  };
+  return { supabaseUrl: SUPABASE_URL, publishableKey: SUPABASE_PUBLISHABLE_KEY };
 }

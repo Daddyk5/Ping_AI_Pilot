@@ -3,21 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
-import { BarChart3, Gauge, History, Radar, Settings, Zap } from "lucide-react";
+import { useSessionUser } from "@/components/shared/useSessionUser";
+import { isActive, NAV_ITEMS } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
-
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: Gauge },
-  { href: "/livetest", label: "Live Test", icon: Radar },
-  { href: "/optimizer", label: "Optimizer", icon: Zap },
-  { href: "/compare", label: "Compare", icon: BarChart3 },
-  { href: "/history", label: "History", icon: History },
-  { href: "/settings", label: "Settings", icon: Settings },
-];
 
 export function Sidebar() {
   const pathname = usePathname();
   const shouldReduceMotion = useReducedMotion();
+  const sessionUser = useSessionUser();
+  const navItems = NAV_ITEMS.filter((item) => !item.adminOnly || sessionUser?.isAdmin);
 
   return (
     <motion.aside
@@ -29,7 +23,7 @@ export function Sidebar() {
       <nav className="space-y-1">
         {navItems.map((item, index) => {
           const Icon = item.icon;
-          const active = pathname === item.href || (pathname === "/" && item.href === "/dashboard");
+          const active = isActive(pathname, item.href);
 
           return (
             <motion.div
@@ -71,7 +65,7 @@ export function Sidebar() {
       >
         <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-zinc-500">Observer Mode</p>
         <p className="mt-2 text-xs leading-5 text-zinc-400">
-          Diagnostic output is advisory telemetry. Route changes remain under user control.
+          PingPilot measures and advises. It never changes your network settings.
         </p>
       </motion.div>
     </motion.aside>

@@ -42,3 +42,5 @@ next-env.d.ts
 
 #ModelFile
 *model
+# env template is safe to commit (no real values)
+!.env.example

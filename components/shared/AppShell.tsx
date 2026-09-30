@@ -6,7 +6,7 @@ import { NavBar } from "@/components/shared/NavBar";
 import { SafetyBar } from "@/components/shared/SafetyBar";
 import { Sidebar } from "@/components/shared/Sidebar";
 
-const publicRoutes = new Set(["/welcome", "/login", "/register"]);
+const publicRoutes = new Set(["/welcome", "/login", "/register", "/forgot-password", "/reset-password"]);
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

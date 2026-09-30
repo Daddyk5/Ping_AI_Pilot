@@ -41,10 +41,10 @@ export default function WelcomePage() {
         <div>
           <Badge tone="green">Observer Mode Active</Badge>
           <h1 className="mt-6 max-w-3xl text-5xl font-semibold tracking-tight text-zinc-50 sm:text-6xl">
-            Real-time gaming latency intelligence.
+            Find the fastest server for your game.
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-8 text-zinc-400">
-            PingPilot AI analyzes ping, jitter, packet loss, stability, and game server regions so you can choose the cleanest route with technical honesty.
+            Test Dota 2, MLBB, Delta Force, CS2 and League of Legends server regions from your own connection. Get a clear recommendation, practical suggestions, and a history of your connection quality over time.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
@@ -71,10 +71,10 @@ export default function WelcomePage() {
         <div className="rounded-lg border border-white/10 bg-zinc-950/70 p-5 shadow-[0_0_32px_rgba(0,243,255,0.08)] backdrop-blur-md">
           <div className="mb-5 flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200">Live Preview</p>
-              <h2 className="mt-1 text-xl font-semibold text-zinc-50">Telemetry Console</h2>
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200">Example result</p>
+              <h2 className="mt-1 text-xl font-semibold text-zinc-50">Dota 2 · SE Asia</h2>
             </div>
-            <Badge tone="cyan">Ready</Badge>
+            <Badge tone="neutral">Sample data</Badge>
           </div>
           <div className="grid gap-3">
             {signals.map((signal) => {
@@ -92,7 +92,7 @@ export default function WelcomePage() {
             })}
           </div>
           <div className="mt-5 rounded border border-white/10 bg-black/40 p-4 font-mono text-xs leading-6 text-zinc-400">
-            Telemetry received. Analyzing packet streams. Bottleneck identified: route stable, no system modifications required.
+            Measured as HTTPS round-trip time from your browser to each region, a close proxy for in-game ping. We tell you exactly what we measure.
           </div>
         </div>
       </section>
