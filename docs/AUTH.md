@@ -82,11 +82,13 @@ Project: `wlidqfizxsjknjhumruw`.
 | Variable | Where | Notes |
 | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | client + server | Must be set in Vercel for Production **and** Preview. Filled in at build time, so redeploy after changing it. |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | client + server | Publishable key (`sb_publishable_…`). Safe to expose. |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | client + server | Publishable key (`sb_publishable_…`). Safe to expose. The legacy name `NEXT_PUBLIC_SUPABASE_ANON_KEY` is also accepted. |
 
 No code path uses a service-role key (the legacy `lib/supabase.ts` admin client was removed). If one is ever needed, it must be `SUPABASE_SERVICE_ROLE_KEY`, used only in server code (import `server-only`), and never prefixed with `NEXT_PUBLIC_`.
 
 ## Debugging checklist
+
+- "Supabase configuration error: … is not set" → that variable is missing from the environment that **built** the app. In Vercel, check it's ticked for the right environment (Production / Preview / Development), then **redeploy**. Adding a variable doesn't change existing builds.
 
 - "Session not found" / logged out on refresh → check that the env vars are set in the Vercel environment you're on, and that you redeployed after setting them.
 - Redirected to `/login?error=auth_callback_failed` → the email link was opened in a different browser, or it expired. See config step 3.
