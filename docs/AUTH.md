@@ -33,7 +33,7 @@ After login the user is sent to `?next=` (checked by `getSafeRedirectPath`, so o
 
 **Password reset.** `/forgot-password` → `resetPasswordForEmail()` → email link → `/auth/callback?next=/reset-password` signs the user in with a recovery session → `/reset-password` (requires a session) → `updateUser({ password })`.
 
-**Sign-out.** `SignOutButton` → `supabase.auth.signOut()` → `/welcome`.
+**Sign-out.** Account menu (`components/shared/AccountMenu.tsx`) → `supabase.auth.signOut()` → `/welcome`.
 
 ## How routes are protected (defence in depth)
 
@@ -71,7 +71,22 @@ Project: `wlidqfizxsjknjhumruw`.
 1. **Authentication → URL Configuration**
    - Site URL: your production URL (e.g. `https://<app>.vercel.app`)
    - Redirect URLs: add `http://localhost:3000/**`, `https://<app>.vercel.app/**`, and `https://*-<vercel-team>.vercel.app/**` (preview deployments)
-2. **Authentication → Providers → Google**: enable it and paste the Client ID / Secret from a Google Cloud OAuth client (type "Web application"). In Google Cloud, set the authorised redirect URI to `https://wlidqfizxsjknjhumruw.supabase.co/auth/v1/callback`.
+2. **Google sign-in**
+   - **Google Cloud → Google Auth Platform**: set up Branding and Audience (External), then **Clients → Create client → Web application**:
+     - Authorized JavaScript origins: `https://<app>.vercel.app`, `http://localhost:3000`
+     - Authorized redirect URI: `https://wlidqfizxsjknjhumruw.supabase.co/auth/v1/callback` (Supabase's callback, **not** an app page)
+     - **Audience → Publish app**, otherwise only listed test users can sign in.
+   - **Supabase → Authentication → Sign In / Providers → Supabase Auth tab → Google**: switch it on, paste the Client ID and Client Secret, and click **Save** at the bottom of the panel. (Not the *Third-Party Auth* tab, and not *OAuth Server*/*OAuth Apps*, which are unrelated.)
+   - Never commit the downloaded `client_secret_*.json` (it is git-ignored). The secret belongs only in Supabase.
+   - Troubleshooting (open `https://wlidqfizxsjknjhumruw.supabase.co/auth/v1/authorize?provider=google` to see the raw response):
+
+     | Error | Cause |
+     | --- | --- |
+     | `400 Unsupported provider: provider is not enabled` | Google switch is off in Supabase. The app's button detects this and shows a readable message. |
+     | `400 Unsupported provider: missing OAuth secret` | Client Secret not saved in Supabase. |
+     | Google page `Error 400: redirect_uri_mismatch` | The Google client's redirect URI isn't exactly the Supabase callback above. |
+     | Google "Access blocked" | App not published and the user isn't a test user. |
+     | Lands on the Site URL (e.g. localhost) or the landing page, still signed out | The app URL is missing from Supabase *Redirect URLs*, so Supabase falls back to the Site URL. |
 3. **Optional but recommended: email links that work in any browser.** PKCE links (`?code=`) only work in the browser that started the flow. Opening a confirmation email on your phone after signing up on desktop fails with "link expired". To avoid this, edit **Authentication → Email Templates**:
    - Confirm signup: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/dashboard`
    - Reset password: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password`
