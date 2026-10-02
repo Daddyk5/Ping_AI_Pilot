@@ -10,6 +10,29 @@ PingPilot AI helps gamers choose the best server region. Pick a game, and the ap
 
 ---
 
+## Screenshots
+
+**Live test:** every region is tested in turn. Each finished region appears as a dot on the radar (closer to the centre means lower ping), and pings are colour-coded by quality.
+
+![Optimizer running a live test across 16 Counter-Strike 2 regions](docs/screenshots/optimizer-live-test.png)
+
+**Dashboard:** key numbers, the main route over time, recent tests and personal suggestions.
+
+![Dashboard with test stats, recent tests and suggestions](docs/screenshots/dashboard.png)
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/optimizer.png" alt="Optimizer: choose a game and the regions to test"><br><sub><b>Optimizer:</b> choose a game and the regions to test.</sub></td>
+    <td width="50%"><img src="docs/screenshots/history.png" alt="Test history with filters"><br><sub><b>History:</b> every saved test, filterable by game, region and date.</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/settings.png" alt="Settings: account, password and preferences"><br><sub><b>Settings:</b> account, password and preferences.</sub></td>
+    <td width="50%"></td>
+  </tr>
+</table>
+
+---
+
 ## What players get
 
 ### 🎯 Game Ping Optimizer
