@@ -11,6 +11,15 @@ const QUALITY = {
   unreachable: { label: "Unreachable", color: statusColors.critical, Icon: CircleX },
 } satisfies Record<Quality, unknown>;
 
+/** Text colour for a latency figure, so ping reads at a glance (paired with a QualityBadge nearby). */
+export const QUALITY_TEXT: Record<Quality, string> = {
+  excellent: "text-success",
+  good: "text-success",
+  fair: "text-warning",
+  poor: "text-serious",
+  unreachable: "text-danger",
+};
+
 export function QualityBadge({ quality }: { quality: Quality | "pending" }) {
   if (quality === "pending") {
     return (

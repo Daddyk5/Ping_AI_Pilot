@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, History as HistoryIcon, SearchX, Trash2, X, Zap } from "lucide-react";
 import { formatMs } from "@/components/charts/chart-theme";
 import { GameBadge } from "@/components/games/GameBadge";
-import { QualityBadge } from "@/components/optimizer/QualityBadge";
+import { QUALITY_TEXT, QualityBadge } from "@/components/optimizer/QualityBadge";
 import { Badge } from "@/components/ui/Badge";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -201,7 +201,7 @@ export function HistoryExplorer() {
                         <QualityBadge quality={best.quality} />
                       </span>
                     )}
-                    <span className="tabular w-16 text-right font-mono text-sm font-semibold text-fg">{best ? formatMs(best.stats.median) : "—"}</span>
+                    <span className={cn("tabular w-16 text-right font-mono text-sm font-semibold", best ? QUALITY_TEXT[best.quality] : "text-fg-3")}>{best ? formatMs(best.stats.median) : "—"}</span>
                     <ChevronDown className={cn("size-4 shrink-0 text-fg-3 transition", open && "rotate-180")} aria-hidden />
                   </button>
                   {open && (
@@ -221,7 +221,7 @@ export function HistoryExplorer() {
                               jitter {formatMs(result.stats.jitter)} · {Math.round(result.stats.failureRate * 100)}% failed
                             </span>
                             <QualityBadge quality={result.quality} />
-                            <span className="tabular w-16 text-right font-mono font-semibold text-fg">{formatMs(result.stats.median)}</span>
+                            <span className={cn("tabular w-16 text-right font-mono font-semibold", QUALITY_TEXT[result.quality])}>{formatMs(result.stats.median)}</span>
                           </li>
                         ))}
                       </ul>
