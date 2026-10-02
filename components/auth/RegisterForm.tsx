@@ -66,8 +66,8 @@ export function RegisterForm() {
 
   return (
     <form action={handleSubmit} className="space-y-4">
-      <AuthField label="Display name" name="displayName" type="text" autoComplete="name" required placeholder="Flight Engineer" />
-      <AuthField label="Email" name="email" type="email" autoComplete="email" required placeholder="pilot@example.com" />
+      <AuthField label="Name" name="displayName" type="text" autoComplete="name" required placeholder="What should we call you?" />
+      <AuthField label="Email" name="email" type="email" autoComplete="email" required placeholder="you@example.com" />
       <AuthField
         label="Password"
         name="password"
@@ -75,13 +75,13 @@ export function RegisterForm() {
         autoComplete="new-password"
         minLength={8}
         required
-        placeholder="Minimum 8 characters"
+        placeholder="At least 8 characters"
       />
       {error && <AuthAlert tone="error">{error}</AuthAlert>}
       {message && <AuthAlert tone="success">{message}</AuthAlert>}
       <button type="submit" disabled={isPending} className={authSubmitClassName}>
         <UserPlus className="h-4 w-4" aria-hidden />
-        {isPending ? "Creating account" : "Create Account"}
+        {isPending ? "Creating account…" : "Create account"}
       </button>
     </form>
   );

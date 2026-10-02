@@ -8,7 +8,7 @@ export default async function ResetPasswordPage() {
   const { user } = await requirePageUser("/reset-password");
 
   return (
-    <AuthCard badge="Account Recovery" badgeTone="cyan" title="Choose a new password" description={`Signed in as ${user.email}.`}>
+    <AuthCard title="Choose a new password" description={`Signed in as ${user.email}. Use at least 8 characters.`}>
       <ResetPasswordForm />
     </AuthCard>
   );

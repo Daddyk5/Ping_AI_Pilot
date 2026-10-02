@@ -1,38 +1,32 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { motion, useReducedMotion } from "framer-motion";
-import { NavBar } from "@/components/shared/NavBar";
-import { SafetyBar } from "@/components/shared/SafetyBar";
-import { Sidebar } from "@/components/shared/Sidebar";
+import { MobileTabBar, Sidebar, TopBar } from "@/components/shared/Navigation";
 
-const publicRoutes = new Set(["/welcome", "/login", "/register", "/forgot-password", "/reset-password"]);
+// Pages that render without the signed-in app chrome.
+const BARE_ROUTES = new Set(["/", "/welcome", "/login", "/register", "/forgot-password", "/reset-password"]);
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const shouldReduceMotion = useReducedMotion();
-  const isPublicRoute = publicRoutes.has(pathname);
 
-  if (isPublicRoute) {
-    return <main className="min-h-screen page-fade">{children}</main>;
+  if (BARE_ROUTES.has(pathname)) {
+    return <main className="min-h-dvh">{children}</main>;
   }
 
   return (
-    <>
-      <NavBar />
-      <div className="flex min-h-[calc(100vh-4rem)] pb-12">
-        <Sidebar />
-        <motion.main
-          key={pathname}
-          className="w-full min-w-0 flex-1"
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
-          animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
-          transition={{ duration: 0.24, ease: "easeOut" }}
-        >
+    <div className="flex min-h-dvh">
+      <a href="#main" className="sr-only z-50 rounded-lg bg-accent px-3 py-2 font-semibold text-accent-ink focus:not-sr-only focus:fixed focus:left-3 focus:top-3">
+        Skip to content
+      </a>
+      <Sidebar />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <TopBar />
+        {/* Bottom padding keeps content clear of the mobile tab bar. */}
+        <main id="main" key={pathname} className="w-full min-w-0 flex-1 animate-rise pb-24 lg:pb-10">
           {children}
-        </motion.main>
+        </main>
       </div>
-      <SafetyBar />
-    </>
+      <MobileTabBar />
+    </div>
   );
 }

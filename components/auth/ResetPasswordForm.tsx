@@ -6,8 +6,18 @@ import { KeyRound } from "lucide-react";
 import { getAuthErrorMessage } from "@/lib/auth-shared";
 import { createSupabaseBrowserClient, MISSING_SUPABASE_BROWSER_ENV } from "@/lib/supabase/browser";
 import { AuthAlert, AuthField, authSubmitClassName } from "@/components/auth/AuthField";
+import { buttonClass } from "@/components/ui/Button";
 
-export function ResetPasswordForm({ redirectTo = "/dashboard?passwordUpdated=1", submitLabel = "Set new password" }: { redirectTo?: string | null; submitLabel?: string }) {
+export function ResetPasswordForm({
+  redirectTo = "/dashboard?passwordUpdated=1",
+  submitLabel = "Set new password",
+  compact = false,
+}: {
+  redirectTo?: string | null;
+  submitLabel?: string;
+  /** Normal-size button (settings) instead of the full-width auth-page button. */
+  compact?: boolean;
+}) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -57,9 +67,9 @@ export function ResetPasswordForm({ redirectTo = "/dashboard?passwordUpdated=1",
       <AuthField label="Confirm password" name="confirm" type="password" autoComplete="new-password" minLength={8} required />
       {error && <AuthAlert tone="error">{error}</AuthAlert>}
       {saved && <AuthAlert tone="success">Password updated.</AuthAlert>}
-      <button type="submit" disabled={isPending} className={authSubmitClassName}>
+      <button type="submit" disabled={isPending} className={compact ? buttonClass() : authSubmitClassName}>
         <KeyRound className="h-4 w-4" aria-hidden />
-        {isPending ? "Saving" : submitLabel}
+        {isPending ? "Saving…" : submitLabel}
       </button>
     </form>
   );

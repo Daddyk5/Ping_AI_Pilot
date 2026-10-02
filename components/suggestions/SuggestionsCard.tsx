@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Cable, Clock, Database, Lightbulb, Loader2, MapPin, TriangleAlert } from "lucide-react";
-import { Card } from "@/components/ui/Card";
+import { Card, CardHeader } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Feedback";
 import type { Suggestion, SuggestionsDto } from "@/lib/suggestions/schema";
 
 const CATEGORY = {
@@ -57,35 +58,46 @@ export function SuggestionsCard({ scope = "overview", refreshKey, compact = fals
 
   return (
     <Card className="p-5" aria-busy={loading}>
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">
-          <Lightbulb className="h-4 w-4" aria-hidden />
-          Suggestions
-        </h2>
-        {loading && <Loader2 className="h-4 w-4 animate-spin text-zinc-500" aria-label="Loading" />}
-      </div>
+      <CardHeader
+        icon={<Lightbulb />}
+        title="Suggestions"
+        action={loading && data ? <Loader2 className="size-4 animate-spin text-fg-3" aria-label="Refreshing" /> : undefined}
+        className="mb-3"
+      />
 
-      {error && !data && <p className="mt-4 text-sm text-zinc-400">{error}</p>}
-      {!data && !error && <div className="mt-4 h-24 animate-pulse rounded bg-white/[0.03]" />}
+      {error && !data && <p className="text-sm text-fg-3">{error}</p>}
+      {!data && !error && (
+        <div className="space-y-3" aria-label="Loading suggestions">
+          <Skeleton className="h-5 w-4/5" />
+          <Skeleton className="h-20" />
+          <Skeleton className="h-20" />
+        </div>
+      )}
 
       {data && (
         <>
-          <p className="mt-3 text-base leading-7 text-zinc-100">{data.headline}</p>
+          <p className="text-[15px] leading-7 text-fg">{data.headline}</p>
           {suggestions && suggestions.length > 0 && (
-            <ul className="mt-4 space-y-3">
+            <ul className="mt-4 space-y-2.5">
               {suggestions.map((suggestion) => {
                 const { Icon, label } = CATEGORY[suggestion.category];
                 return (
-                  <li key={suggestion.title} className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                  <li key={suggestion.title} className="rounded-xl border border-line bg-surface-2 p-3.5">
                     <div className="flex items-start gap-3">
-                      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-cyan-200" aria-label={label} />
+                      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent" aria-label={label}>
+                        <Icon className="size-4" aria-hidden />
+                      </span>
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-zinc-100">
+                        <p className="flex items-center gap-2 text-sm font-semibold text-fg">
                           {suggestion.title}
-                          {suggestion.priority === "high" && <span className="sr-only"> (high priority)</span>}
+                          {suggestion.priority === "high" && (
+                            <span className="size-1.5 shrink-0 rounded-full bg-warning" title="High priority">
+                              <span className="sr-only">(high priority)</span>
+                            </span>
+                          )}
                         </p>
-                        <p className="mt-1 text-sm leading-6 text-zinc-300">{suggestion.detail}</p>
-                        <p className="mt-1 text-xs leading-5 text-zinc-500">{suggestion.evidence}</p>
+                        <p className="mt-1 text-sm leading-6 text-fg-2">{suggestion.detail}</p>
+                        <p className="mt-2 border-l-2 border-accent/30 pl-2.5 text-xs leading-5 text-fg-3">{suggestion.evidence}</p>
                       </div>
                     </div>
                   </li>
@@ -93,7 +105,7 @@ export function SuggestionsCard({ scope = "overview", refreshKey, compact = fals
               })}
             </ul>
           )}
-          <p className="mt-4 text-xs leading-5 text-zinc-500">
+          <p className="mt-4 text-xs leading-5 text-fg-3">
             Based on {data.basedOnRuns} test{data.basedOnRuns === 1 ? "" : "s"} in the last 30 days · updated {ago(data.generatedAt)}
           </p>
         </>

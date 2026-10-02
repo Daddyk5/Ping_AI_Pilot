@@ -11,6 +11,8 @@ const PUBLIC_PREFIXES = ["/auth/"];
 const GUEST_ONLY_PATHS = new Set(["/", "/welcome", "/login", "/register", "/forgot-password"]);
 
 function isPublicPath(pathname: string) {
+  // /dev/* is the design preview with sample data; its routes 404 in production builds.
+  if (process.env.NODE_ENV !== "production" && pathname.startsWith("/dev/")) return true;
   return PUBLIC_PATHS.has(pathname) || PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
@@ -29,7 +31,7 @@ export async function proxy(request: NextRequest) {
     return redirectWithCookies(new URL("/dashboard", request.url), response);
   }
 
-  if (!user && pathname.startsWith("/api/")) {
+  if (!user && pathname.startsWith("/api/") && !isPublicPath(pathname)) {
     return Response.json({ success: false, error: "Authentication required." }, { status: 401 });
   }
 

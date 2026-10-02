@@ -9,11 +9,10 @@ const dayFormat = new Intl.DateTimeFormat("en", { month: "short", day: "numeric"
 // Single-series magnitude charts: one hue, thin marks, 4px rounded data-ends, one axis.
 
 export function RunsPerDayChart({ data }: { data: Array<{ day: string; runs: number }> }) {
-  if (data.length === 0) return <p className="text-sm text-zinc-500">No tests in the last 30 days.</p>;
+  if (data.length === 0) return <p className="text-sm text-fg-3">No tests in the last 30 days.</p>;
 
   return (
     <figure>
-      <figcaption className="mb-2 text-sm text-zinc-400">Optimizer tests per day (UTC), last 30 days</figcaption>
       <ResponsiveContainer width="100%" height={220} minWidth={0}>
         <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 4 }}>
           <CartesianGrid vertical={false} stroke={chartColors.grid} />
@@ -34,11 +33,10 @@ export function RunsPerDayChart({ data }: { data: Array<{ day: string; runs: num
 }
 
 export function RunsByGameChart({ data }: { data: Array<{ label: string; runs: number }> }) {
-  if (data.length === 0) return <p className="text-sm text-zinc-500">No tests in the last 30 days.</p>;
+  if (data.length === 0) return <p className="text-sm text-fg-3">No tests in the last 30 days.</p>;
 
   return (
     <figure>
-      <figcaption className="mb-2 text-sm text-zinc-400">Tests by game, last 30 days</figcaption>
       <ResponsiveContainer width="100%" height={Math.max(120, data.length * 34 + 30)} minWidth={0}>
         <BarChart data={data} layout="vertical" margin={{ top: 4, right: 24, left: 8, bottom: 4 }}>
           <CartesianGrid horizontal={false} stroke={chartColors.grid} />

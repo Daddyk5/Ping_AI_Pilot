@@ -14,7 +14,7 @@ const QUALITY = {
 export function QualityBadge({ quality }: { quality: Quality | "pending" }) {
   if (quality === "pending") {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-zinc-500">
+      <span className="inline-flex items-center gap-1.5 text-xs text-fg-3">
         <CircleMinus className="h-3.5 w-3.5" aria-hidden />
         Pending
       </span>
@@ -23,7 +23,7 @@ export function QualityBadge({ quality }: { quality: Quality | "pending" }) {
 
   const { label, color, Icon } = QUALITY[quality];
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-200">
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-fg-2">
       <Icon className="h-3.5 w-3.5" style={{ color }} aria-hidden />
       {label}
     </span>

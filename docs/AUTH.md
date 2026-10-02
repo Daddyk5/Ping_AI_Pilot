@@ -33,7 +33,7 @@ After login the user is sent to `?next=` (checked by `getSafeRedirectPath`, so o
 
 **Password reset.** `/forgot-password` → `resetPasswordForEmail()` → email link → `/auth/callback?next=/reset-password` signs the user in with a recovery session → `/reset-password` (requires a session) → `updateUser({ password })`.
 
-**Sign-out.** `SignOutButton` → `supabase.auth.signOut()` → `/welcome`.
+**Sign-out.** Account menu (`components/shared/AccountMenu.tsx`) → `supabase.auth.signOut()` → `/welcome`.
 
 ## How routes are protected (defence in depth)
 
@@ -71,7 +71,22 @@ Project: `wlidqfizxsjknjhumruw`.
 1. **Authentication → URL Configuration**
    - Site URL: your production URL (e.g. `https://<app>.vercel.app`)
    - Redirect URLs: add `http://localhost:3000/**`, `https://<app>.vercel.app/**`, and `https://*-<vercel-team>.vercel.app/**` (preview deployments)
-2. **Authentication → Providers → Google**: enable it and paste the Client ID / Secret from a Google Cloud OAuth client (type "Web application"). In Google Cloud, set the authorised redirect URI to `https://wlidqfizxsjknjhumruw.supabase.co/auth/v1/callback`.
+2. **Google sign-in**
+   - **Google Cloud → Google Auth Platform**: set up Branding and Audience (External), then **Clients → Create client → Web application**:
+     - Authorized JavaScript origins: `https://<app>.vercel.app`, `http://localhost:3000`
+     - Authorized redirect URI: `https://wlidqfizxsjknjhumruw.supabase.co/auth/v1/callback` (Supabase's callback, **not** an app page)
+     - **Audience → Publish app**, otherwise only listed test users can sign in.
+   - **Supabase → Authentication → Sign In / Providers → Supabase Auth tab → Google**: switch it on, paste the Client ID and Client Secret, and click **Save** at the bottom of the panel. (Not the *Third-Party Auth* tab, and not *OAuth Server*/*OAuth Apps*, which are unrelated.)
+   - Never commit the downloaded `client_secret_*.json` (it is git-ignored). The secret belongs only in Supabase.
+   - Troubleshooting (open `https://wlidqfizxsjknjhumruw.supabase.co/auth/v1/authorize?provider=google` to see the raw response):
+
+     | Error | Cause |
+     | --- | --- |
+     | `400 Unsupported provider: provider is not enabled` | Google switch is off in Supabase. The app's button detects this and shows a readable message. |
+     | `400 Unsupported provider: missing OAuth secret` | Client Secret not saved in Supabase. |
+     | Google page `Error 400: redirect_uri_mismatch` | The Google client's redirect URI isn't exactly the Supabase callback above. |
+     | Google "Access blocked" | App not published and the user isn't a test user. |
+     | Lands on the Site URL (e.g. localhost) or the landing page, still signed out | The app URL is missing from Supabase *Redirect URLs*, so Supabase falls back to the Site URL. |
 3. **Optional but recommended: email links that work in any browser.** PKCE links (`?code=`) only work in the browser that started the flow. Opening a confirmation email on your phone after signing up on desktop fails with "link expired". To avoid this, edit **Authentication → Email Templates**:
    - Confirm signup: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/dashboard`
    - Reset password: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password`
@@ -82,11 +97,13 @@ Project: `wlidqfizxsjknjhumruw`.
 | Variable | Where | Notes |
 | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | client + server | Must be set in Vercel for Production **and** Preview. Filled in at build time, so redeploy after changing it. |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | client + server | Publishable key (`sb_publishable_…`). Safe to expose. |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | client + server | Publishable key (`sb_publishable_…`). Safe to expose. The legacy name `NEXT_PUBLIC_SUPABASE_ANON_KEY` is also accepted. |
 
 No code path uses a service-role key (the legacy `lib/supabase.ts` admin client was removed). If one is ever needed, it must be `SUPABASE_SERVICE_ROLE_KEY`, used only in server code (import `server-only`), and never prefixed with `NEXT_PUBLIC_`.
 
 ## Debugging checklist
+
+- "Supabase configuration error: … is not set" → that variable is missing from the environment that **built** the app. In Vercel, check it's ticked for the right environment (Production / Preview / Development), then **redeploy**. Adding a variable doesn't change existing builds.
 
 - "Session not found" / logged out on refresh → check that the env vars are set in the Vercel environment you're on, and that you redeployed after setting them.
 - Redirected to `/login?error=auth_callback_failed` → the email link was opened in a different browser, or it expired. See config step 3.
