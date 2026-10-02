@@ -76,6 +76,7 @@ Project: `wlidqfizxsjknjhumruw`.
      - Authorized JavaScript origins: `https://<app>.vercel.app`, `http://localhost:3000`
      - Authorized redirect URI: `https://wlidqfizxsjknjhumruw.supabase.co/auth/v1/callback` (Supabase's callback, **not** an app page)
      - **Audience → Publish app**, otherwise only listed test users can sign in.
+     - `Error 403: org_internal` means the audience is set to **Internal** (only accounts in your Google Workspace org). Change it under **Audience → User type → Make external**.
    - **Supabase → Authentication → Sign In / Providers → Supabase Auth tab → Google**: switch it on, paste the Client ID and Client Secret, and click **Save** at the bottom of the panel. (Not the *Third-Party Auth* tab, and not *OAuth Server*/*OAuth Apps*, which are unrelated.)
    - Never commit the downloaded `client_secret_*.json` (it is git-ignored). The secret belongs only in Supabase.
    - Troubleshooting (open `https://wlidqfizxsjknjhumruw.supabase.co/auth/v1/authorize?provider=google` to see the raw response):
