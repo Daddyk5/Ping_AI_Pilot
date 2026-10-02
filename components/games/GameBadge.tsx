@@ -1,8 +1,9 @@
+import { GAME_LOGO_PATHS } from "@/components/games/logos";
 import type { Game } from "@/lib/games/catalog";
 import { cn } from "@/lib/utils";
 
-// Placeholder monogram badges in each game's brand colour. We deliberately don't hotlink or
-// scrape official logos; swap in licensed press-kit assets from public/games/ when available.
+// Each game's official mark (bundled from Simple Icons, see ./logos.ts) on its brand colour.
+// Games without a bundled mark fall back to a monogram.
 
 function relativeLuminance(hex: string) {
   const [r, g, b] = [1, 3, 5].map((i) => {
@@ -24,7 +25,15 @@ const sizes = {
   lg: "h-14 w-14 text-base",
 };
 
-export function GameBadge({ game, size = "md", className }: { game: Pick<Game, "name" | "monogram" | "brandColor">; size?: keyof typeof sizes; className?: string }) {
+const logoSizes = {
+  sm: "size-[18px]",
+  md: "size-6",
+  lg: "size-8",
+};
+
+export function GameBadge({ game, size = "md", className }: { game: Pick<Game, "id" | "name" | "monogram" | "brandColor">; size?: keyof typeof sizes; className?: string }) {
+  const logoPath = GAME_LOGO_PATHS[game.id];
+
   return (
     <span
       role="img"
@@ -32,7 +41,13 @@ export function GameBadge({ game, size = "md", className }: { game: Pick<Game, "
       className={cn("grid shrink-0 place-items-center rounded-md font-bold tracking-tight", sizes[size], className)}
       style={{ backgroundColor: game.brandColor, color: inkFor(game.brandColor) }}
     >
-      {game.monogram}
+      {logoPath ? (
+        <svg viewBox="0 0 24 24" aria-hidden="true" className={cn(logoSizes[size], "fill-current")}>
+          <path d={logoPath} />
+        </svg>
+      ) : (
+        game.monogram
+      )}
     </span>
   );
 }

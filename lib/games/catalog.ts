@@ -68,7 +68,7 @@ export type Game = {
   id: GameId;
   name: string;
   shortName: string;
-  /** Monogram badge until licensed logo assets are sourced (see public/games/README.md). */
+  /** Fallback badge text for games without a bundled logo (see public/games/README.md). */
   monogram: string;
   brandColor: string;
   genre: string;
