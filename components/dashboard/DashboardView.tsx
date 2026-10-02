@@ -3,7 +3,7 @@ import { Activity, ArrowRight, Gauge, History as HistoryIcon, Route, Trophy, Zap
 import { formatMs } from "@/components/charts/chart-theme";
 import { LatencyTrendChart, type TrendPoint } from "@/components/charts/LatencyTrendChart";
 import { GameBadge } from "@/components/games/GameBadge";
-import { QualityBadge } from "@/components/optimizer/QualityBadge";
+import { QUALITY_TEXT, QualityBadge } from "@/components/optimizer/QualityBadge";
 import { SuggestionsCard } from "@/components/suggestions/SuggestionsCard";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
@@ -12,6 +12,7 @@ import { StatTile } from "@/components/ui/StatTile";
 import { formatDateTime, timeAgo } from "@/lib/format";
 import { GAMES, getGame, isTestableGame } from "@/lib/games/catalog";
 import type { PingRunDto } from "@/lib/latency/types";
+import { cn } from "@/lib/utils";
 
 const WINDOW_DAYS = 30;
 
@@ -135,14 +136,14 @@ export function DashboardView({ name, runs, loadError }: { name: string | null; 
         <StatTile
           icon={<Route />}
           label="Latest best route"
-          value={latestBest ? formatMs(latestBest.stats.median) : "—"}
+          value={latestBest ? <span className={QUALITY_TEXT[latestBest.quality]}>{formatMs(latestBest.stats.median)}</span> : "—"}
           detail={latestBest ? `${gameName(latest.gameId)} · ${latestBest.targetLabel}` : "Run the optimizer"}
         />
         <StatTile icon={<Gauge />} label="Latest jitter" value={latestBest ? formatMs(latestBest.stats.jitter) : "—"} detail={latestBest ? <QualityBadge quality={latestBest.quality} /> : undefined} />
         <StatTile
           icon={<Trophy />}
           label="Best result (30 days)"
-          value={bestEver ? formatMs(bestEver.result.stats.median) : "—"}
+          value={bestEver ? <span className={QUALITY_TEXT[bestEver.result.quality]}>{formatMs(bestEver.result.stats.median)}</span> : "—"}
           detail={bestEver ? `${gameName(bestEver.run.gameId)} · ${bestEver.result.targetLabel}` : undefined}
         />
       </section>
@@ -187,7 +188,7 @@ export function DashboardView({ name, runs, loadError }: { name: string | null; 
                         <QualityBadge quality={best.quality} />
                       </span>
                     )}
-                    <span className="tabular w-16 text-right font-mono text-sm font-semibold text-fg">{best ? formatMs(best.stats.median) : "—"}</span>
+                    <span className={cn("tabular w-16 text-right font-mono text-sm font-semibold", best ? QUALITY_TEXT[best.quality] : "text-fg-3")}>{best ? formatMs(best.stats.median) : "—"}</span>
                   </li>
                 );
               })}

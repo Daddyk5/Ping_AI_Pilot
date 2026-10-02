@@ -1,12 +1,22 @@
 import { MapPin, Scale, Sparkles, WifiOff } from "lucide-react";
 import { formatMs } from "@/components/charts/chart-theme";
 import { GameBadge } from "@/components/games/GameBadge";
-import { QualityBadge } from "@/components/optimizer/QualityBadge";
+import { QUALITY_TEXT, QualityBadge } from "@/components/optimizer/QualityBadge";
 import { Card } from "@/components/ui/Card";
 import type { Game } from "@/lib/games/catalog";
 import type { LatencyStats, Quality } from "@/lib/latency/stats";
+import { cn } from "@/lib/utils";
 
 type Pick = { label: string; location: string; stats: LatencyStats; quality: Quality };
+
+// What the grade means in a match, in plain words.
+const VERDICT: Record<Quality, string> = {
+  excellent: "Competitive-grade. You shouldn’t feel any delay.",
+  good: "Smooth for ranked play.",
+  fair: "Playable, but you may feel delay in fast fights.",
+  poor: "Expect noticeable lag on this connection.",
+  unreachable: "This region didn’t respond.",
+};
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
@@ -48,12 +58,13 @@ export function RecommendationCard({ game, best, runnerUp, isTie }: { game: Game
         </div>
 
         <div className="mt-6 flex items-end justify-between gap-3">
-          <p className="tabular text-6xl font-semibold tracking-tighter text-fg">
+          <p className={cn("tabular text-6xl font-semibold tracking-tighter", QUALITY_TEXT[best.quality])}>
             {Math.round(best.stats.median ?? 0)}
             <span className="ml-1 text-xl font-medium tracking-normal text-fg-3">ms</span>
           </p>
           <QualityBadge quality={best.quality} />
         </div>
+        <p className="mt-2 text-sm text-fg-2">{VERDICT[best.quality]}</p>
 
         <div className="mt-5 grid grid-cols-3 gap-2">
           <Metric label="Jitter" value={formatMs(best.stats.jitter)} />

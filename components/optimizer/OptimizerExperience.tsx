@@ -25,6 +25,9 @@ type Target = { targetId: string; label: string; location: string; nearby: boole
 type LiveState = Record<string, { samples: Sample[]; status: "pending" | "running" | "done" }>;
 type Phase = "idle" | "running" | "saving" | "done";
 
+/** Rough time per region (10 sequential requests), for the duration estimates. */
+const SECONDS_PER_TARGET = 1.5;
+
 function gameTargets(game: Game): Target[] {
   return game.regions.map((region) => {
     const site = PROBE_SITES[region.probe];
@@ -248,7 +251,7 @@ export function OptimizerExperience({ initialGame }: { initialGame?: string }) {
                 </Button>
               )}
               <p className="text-center text-xs text-fg-3 lg:text-right">
-                {DEFAULT_SAMPLES} requests per region · about {Math.max(5, Math.round(targets.length * 1.5))} seconds
+                {DEFAULT_SAMPLES} requests per region · about {Math.max(5, Math.round(targets.length * SECONDS_PER_TARGET))} seconds
               </p>
             </div>
           </div>
@@ -273,6 +276,8 @@ export function OptimizerExperience({ initialGame }: { initialGame?: string }) {
           progress={progress}
           saving={phase === "saving"}
           leaderboard={ranked.map((target) => ({ id: target.targetId, label: target.label, median: target.stats.median, quality: target.quality }))}
+          queue={rows.map((row) => ({ id: row.targetId, label: row.label, status: row.status, median: row.stats?.median ?? null, quality: row.quality }))}
+          secondsPerTarget={SECONDS_PER_TARGET}
         />
         </div>
       )}

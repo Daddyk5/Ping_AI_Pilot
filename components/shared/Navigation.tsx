@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShieldCheck } from "lucide-react";
+import { ChevronRight, ShieldCheck, Zap } from "lucide-react";
 import { AccountMenu } from "@/components/shared/AccountMenu";
 import { Logo } from "@/components/shared/Logo";
+import { ButtonLink } from "@/components/ui/Button";
 import { useSessionUser } from "@/components/shared/useSessionUser";
 import { isActive, NAV_ITEMS } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
@@ -55,14 +56,36 @@ export function Sidebar() {
   );
 }
 
-/** Sticky top bar: logo on mobile, account menu everywhere. Page-level actions live in each PageHeader. */
+// Pages whose header already offers a way into the optimizer.
+const HAS_TEST_ACTION = new Set(["/dashboard", "/optimizer"]);
+
+/** Sticky top bar: logo on mobile; on desktop, where you are plus a shortcut to run a test. Account menu everywhere. */
 export function TopBar() {
+  const pathname = usePathname();
+  const current = NAV_ITEMS.find((item) => isActive(pathname, item.href));
+
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/75 backdrop-blur-xl">
       <div className="flex h-14 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         <Logo href="/dashboard" className="lg:hidden" />
-        <div className="hidden lg:block" />
-        <AccountMenu />
+        <p className="hidden items-center gap-1.5 text-sm text-fg-3 lg:flex">
+          PingPilot
+          {current && (
+            <>
+              <ChevronRight className="size-3.5" aria-hidden />
+              <span className="font-medium text-fg-2">{current.label}</span>
+            </>
+          )}
+        </p>
+        <div className="flex items-center gap-2">
+          {!HAS_TEST_ACTION.has(pathname) && (
+            <ButtonLink href="/optimizer" variant="secondary" size="sm" className="hidden lg:inline-flex">
+              <Zap aria-hidden />
+              Run a test
+            </ButtonLink>
+          )}
+          <AccountMenu />
+        </div>
       </div>
     </header>
   );

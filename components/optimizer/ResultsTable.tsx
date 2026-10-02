@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, MapPin } from "lucide-react";
 import { formatMs } from "@/components/charts/chart-theme";
-import { QualityBadge } from "@/components/optimizer/QualityBadge";
+import { QUALITY_TEXT, QualityBadge } from "@/components/optimizer/QualityBadge";
 import { Badge } from "@/components/ui/Badge";
 import type { LatencyStats, Quality } from "@/lib/latency/stats";
 import { cn } from "@/lib/utils";
@@ -59,7 +59,7 @@ export function ResultsTable({ rows, recommendedId, selectedId, onSelect }: Prop
                   </p>
                   <Location row={row} />
                 </div>
-                <p className="tabular shrink-0 whitespace-nowrap font-mono text-lg font-semibold text-fg">{formatMs(row.stats!.median)}</p>
+                <p className={cn("tabular shrink-0 whitespace-nowrap font-mono text-lg font-semibold", row.quality ? QUALITY_TEXT[row.quality] : "text-fg")}>{formatMs(row.stats!.median)}</p>
               </div>
               <div className="mt-3 flex items-center justify-between text-xs text-fg-3">
                 <span className="tabular">
@@ -112,7 +112,7 @@ export function ResultsTable({ rows, recommendedId, selectedId, onSelect }: Prop
                   </span>
                   <Location row={row} />
                 </td>
-                <td className="px-4 py-3 text-right font-mono font-semibold text-fg">{formatMs(row.stats!.median)}</td>
+                <td className={cn("px-4 py-3 text-right font-mono font-semibold", row.quality ? QUALITY_TEXT[row.quality] : "text-fg")}>{formatMs(row.stats!.median)}</td>
                 <td className="px-4 py-3 text-right font-mono text-fg-2">{formatMs(row.stats!.p95)}</td>
                 <td className="px-4 py-3 text-right font-mono text-fg-2">{formatMs(row.stats!.jitter)}</td>
                 <td className="px-4 py-3 text-right font-mono text-fg-2">{Math.round(row.stats!.failureRate * 100)}%</td>
